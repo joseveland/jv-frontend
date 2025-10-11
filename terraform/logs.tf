@@ -2,7 +2,7 @@
 resource "aws_s3_bucket" "logs_bucket" {
   # Conditional to create the bucket or not if `var.logs_bucket_name` was defined
   count  = var.logs_bucket_name == null ? 0:1   # `count` converts the resource to a list so be careful when accessing
-  bucket = "${var.project_name}-${var.logs_bucket_name}"
+  bucket = coalesce("${var.project_name}-${var.logs_bucket_name}", "non-null")
 }
 
 # S3 bucket for logs should be private
