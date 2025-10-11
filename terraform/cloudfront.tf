@@ -71,22 +71,28 @@ resource "aws_cloudfront_distribution" "app_distribution" {
   viewer_certificate {
     cloudfront_default_certificate = true
     # acm_certificate_arn      = var.acm_certificate_arn  # Uncomment for custom domain
-    # ssl_support_method       = "sni-only"              # Uncomment for custom domain
-    # minimum_protocol_version = "TLSv1.2_2021"          # Uncomment for custom domain
+    # ssl_support_method       = "sni-only"               # Uncomment for custom domain
+    # minimum_protocol_version = "TLSv1.2_2021"           # Uncomment for custom domain
   }
 
-  depends_on = [
-    aws_s3_bucket.app_bucket,
-    aws_s3_bucket.logs_bucket
-  ]
+  depends_on = concat(
+    [
+      aws_s3_bucket.app_bucket,
+    ],
+    # Splat [*] produces a list already so simpler to concatenate (even if empty when count is 0) the expression works
+    aws_s3_bucket.logs_bucket[*]
+  )
 
-  # OPTIONAL (dynamic/content) if logs bucket is defined
+  # OPTIONAL (dynamic/content) if logs bucket is created (non empty list)
+  # The `logging_config` field will be created and dynamically that same name is used as iterator variable (.value) next
+  # The `for_each` conditionally creates the block only if the logs bucket is defined as otherwise loops 0 times
+  # The `content` block is required when using `for_each` within `dynamic`
   dynamic "logging_config" {
-    for_each = var.logs_bucket_name == null ? [] : [1]
+    for_each = aws_s3_bucket.logs_bucket
     content {
-      bucket          = aws_s3_bucket.logs_bucket.bucket_domain_name
-      include_cookies = false
-      # prefix = "logs/"    # Prefix for better organization in a bucket is typically a folder
+      bucket          = logging_config.value.bucket_domain_name
+      include_cookies = false # OPTIONAL: Cookies can be too long so better to avoid them within the logs
+      # prefix = "logs/"      # OPTIONAL: Prefix for better organization in a bucket is typically a folder
     }
   }
 }
