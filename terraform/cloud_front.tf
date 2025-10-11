@@ -75,7 +75,7 @@ resource "aws_cloudfront_distribution" "app_distribution" {
     # minimum_protocol_version = "TLSv1.2_2021"           # Uncomment for custom domain
   }
 
-  depends_on = length(aws_s3_bucket.logs_bucket) == 0 ? [
+  depends_on = var.logs_bucket_name == null ? [
     aws_s3_bucket.app_bucket,
     ] : [
     aws_s3_bucket.app_bucket,
