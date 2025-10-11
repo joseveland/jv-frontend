@@ -268,9 +268,25 @@ commands (see `package.json` file for more details):
     ```bash
     cd angular/
     npm run build     # Compiles into static files at `dist/ANGULAR_PROJECT_NAME/PLATFORM_NAME` folder
-    aws s3 sync dist/jv-frontend/browser/ s3://APP-BUCKET-NAME --delete   # `--delete` to remove old files
+    aws s3 sync \
+      --content-type "auto" --delete \
+      dist/jv-frontend/browser/ \
+      s3://APP-BUCKET-NAME
     ```
-    **NOTE:** `APP-BUCKET-NAME` is `jv-frontend-xxx`,
-    `jv-frontend-angular-app` typically
+    **NOTE:** `--delete` flag to remove files in the bucket (a cleanup
+    basically), and `--content-type "auto"` to let AWS CLI set the proper
+    `Content-Type` metadata for each file based on its extension (very
+    important for web browsers to receive it otherwise you'll get
+    a console error about MIME type being `text/plain` instead)
 <br><br/>
 
+3. To access the front end you could do it:
+
+   * Via direct public HTTP web configuration within the S3 bucket. Go for the
+   `http://APP-BUCKET-NAME.s3-website-region.amazonaws.com/index.html`
+   URL (It didn't work yet, lol)
+<br><br/>
+
+   * Via CloudFront distribution URL (HTTPS), go for the distribution URL
+   `https://DOMAIN-ID.cloudfront.net` (The full URL is seen once deployed)
+<br><br/>
