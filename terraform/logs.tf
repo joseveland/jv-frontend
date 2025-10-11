@@ -7,7 +7,7 @@ resource "aws_s3_bucket" "logs_bucket" {
 
 # S3 bucket for logs should be private
 resource "aws_s3_bucket_acl" "logs_bucket_private" {
-  count  = var.logs_bucket_name == null ? 0 : 1 # Again another list (aws_s3_bucket_acl.logs_bucket_private[*])
+  count  = length(aws_s3_bucket.logs_bucket)    # A list (aws_s3_bucket_acl.logs_bucket_private[*]) if accessed later
   bucket = one(aws_s3_bucket.logs_bucket[*].id) # `one()` extract a single value from the list or `null` if count is 0
 
   acl = "private"
@@ -15,7 +15,7 @@ resource "aws_s3_bucket_acl" "logs_bucket_private" {
 
 # S3 bucket for logs doesn't need to have a website configuration
 resource "aws_s3_bucket_public_access_block" "logs_bucket_non_public" {
-  count  = var.logs_bucket_name == null ? 0 : 1 # Again another list (aws_s3_bucket_public_access_block.logs_bucket_non_public[*])
+  count  = length(aws_s3_bucket.logs_bucket)    # A list (aws_s3_bucket_public_access_block.logs_bucket_non_public[*]) if accessed later
   bucket = one(aws_s3_bucket.logs_bucket[*].id) # `one()` extract a single value from the list or `null` if count is 0
 
   block_public_acls       = true

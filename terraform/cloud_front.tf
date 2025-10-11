@@ -75,14 +75,12 @@ resource "aws_cloudfront_distribution" "app_distribution" {
     # minimum_protocol_version = "TLSv1.2_2021"           # Uncomment for custom domain
   }
 
-  # Flatten works with lists of lists so it is perfect to have 1-D array of dependencies
-  depends_on = flatten(
-    [
-      aws_s3_bucket.app_bucket,
-    ],
-    # Splat [*] produces a list already so simpler to concatenate (even if empty when count is 0) the expression works
-    [aws_s3_bucket.logs_bucket[*]]  # TF requires a explicit list so I had to add additional brackets [ ... ]
-  )
+  depends_on = length(aws_s3_bucket.logs_bucket) == 0 ? [
+    aws_s3_bucket.app_bucket,
+    ] : [
+    aws_s3_bucket.app_bucket,
+    aws_s3_bucket.logs_bucket[0], # It will be just 1 instance so index 0 access is fine
+  ]
 
   # OPTIONAL (dynamic/content) if logs bucket is created (non empty list)
   # The `logging_config` field will be created and dynamically that same name is used as iterator variable (.value) next
