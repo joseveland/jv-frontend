@@ -1,8 +1,12 @@
+locals {
+  logs_bucket_name = var.logs_bucket_name == null ? "non-null" : "${var.project_name}-${var.logs_bucket_name}"
+}
+
 # Additional S3 bucket for CloudFront logs
 resource "aws_s3_bucket" "logs_bucket" {
   # Conditional to create the bucket or not if `var.logs_bucket_name` was defined
   count  = var.logs_bucket_name == null ? 0:1   # `count` converts the resource to a list so be careful when accessing
-  bucket = coalesce("${var.project_name}-${var.logs_bucket_name}", "non-null")
+  bucket = local.logs_bucket_name
 }
 
 # S3 bucket for logs should be private
