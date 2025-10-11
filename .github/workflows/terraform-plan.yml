@@ -1,0 +1,102 @@
+name: Shared Terraform Plan
+
+on:
+  workflow_call:  # This means this workflow (.yml) is called by another workflow (.yml)
+    inputs:
+      deployment_environment:
+        description: 'Deployment environment to be used'
+        required: true
+        type: string
+    secrets:
+      aws_region:
+        required: true
+      aws_access_key_id:
+        required: true
+      aws_secret_access_key:
+        required: true
+
+
+env:  # Default stuff for all jobs
+  TF_VERSION: '1.13.3'
+
+jobs:
+
+  terraform-init-plan-comment-pr:
+    name: Terraform Init-Plan-[Artifact]-[Comment-PR]
+    runs-on: ubuntu-latest
+
+    # Points to the repo's "Environments": Hardcoded, inputs or `matrix.Xxx` will work (`env.Xxx` WON'T work)
+    environment: ${{ inputs.deployment_environment }}
+
+    env:
+      # Simply translating the input value to an env var
+      DEPLOYMENT: ${{ inputs.deployment_environment }}
+      # Moving AWS secrets to OS-environments for terraform to use
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ env.TF_VERSION }}
+    
+    - name: Terraform Init
+      id: init
+      run: |
+        cd terraform
+        terraform init \
+          -backend-config="env/${{ env.DEPLOYMENT }}/backend.tfvars"
+    
+    - name: Terraform Plan
+      id: plan
+      run: |
+        cd terraform
+        terraform plan \
+          -var-file="env/${{ env.DEPLOYMENT }}/default.tfvars" \
+          -out="${{ env.DEPLOYMENT }}.tfplan"
+
+    - name: Terraform Plan (No color)
+      id: plan-no-color
+      run: |
+        cd terraform
+        terraform plan -no-color \
+          -var-file="env/${{ env.DEPLOYMENT }}/default.tfvars"
+
+    - name: Upload plan artifact
+      if: github.event_name != 'pull_request'  # Skip artifact upload for PRs, for PRs the plan will be commented next
+      uses: actions/upload-artifact@v4  # See more at its repo https://github.com/actions/upload-artifact?tab=readme-ov-file#inputs
+      with:
+        name: ${{ env.DEPLOYMENT }}-tfplan  # Created for the `terraform-apply` job in the `terraform-plan-apply.yml`
+        path: terraform/${{ env.DEPLOYMENT }}.tfplan
+    
+    - name: Comment PR with Terraform Plan
+      uses: actions/github-script@v8  # See more at its repo https://github.com/actions/github-script
+      if: github.event_name == 'pull_request'   # Limited to PRs accordingly to the action to execute next
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        # `This basically allows to run Node.js code (like `process.env.Xxx`) using `@actions/github` package
+        script: |
+          const output = `#### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
+          #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
+          
+          <details><summary>See Plan</summary>
+          
+          \`\`\`terraform
+          ${{ steps.plan-no-color.outputs.stdout }}
+          \`\`\`
+          
+          </details>
+          
+          *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: output
+          })

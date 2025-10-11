@@ -1,0 +1,101 @@
+name: Terraform Validate and Plan
+
+on:
+  # Push to main or develop branches or PRs targeting those branches will trigger this workflow (.yml) ...
+  # ... with additional changes detection in the `terraform/` folder or this workflow `.yml` file itself
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'terraform/**'
+      - '.github/workflows/terraform-plan.yml'
+      - '.github/workflows/terraform-validate-plan.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'terraform/**'
+      - '.github/workflows/terraform-plan.yml'
+      - '.github/workflows/terraform-validate-plan.yml'
+
+env:  # Default stuff for all jobs
+  TF_VERSION: '1.13.3'
+
+permissions:    # Relates to the `GITHUB_TOKEN` allowed permissions, however mess up the defaults to `none` so ...
+  contents: read   # This usually has `read` permissions by default (for `actions/checkout@` to work) so I need this
+  pull-requests: write  # Additional `write` to PRs, to allow the `actions/github-script@` to comment the PR
+
+jobs:
+
+  tf-linting:
+    name: TFLint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@v4
+        with:
+          tflint_version: latest
+
+      - name: Init TFLint
+        run: tflint --init
+
+      - name: Run TFLint
+        run: tflint -f compact --chdir terraform/
+
+  terraform-validate:
+    name: Terraform Validate
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ env.TF_VERSION }}
+    
+    - name: Terraform Format Check
+      id: fmt
+      run: terraform fmt -check -recursive terraform/
+      continue-on-error: true   # Optional: don't fail the job if fmt fails
+    
+    - name: Terraform Init
+      id: init
+      run: |
+        cd terraform
+        terraform init -backend=false
+    
+    - name: Terraform Validate
+      id: validate
+      run: |
+        cd terraform
+        terraform validate
+
+  terraform-plan-dev:
+    needs: terraform-validate
+
+    # Re-usable logic from `terraform-plan.yml` workflow
+    name: Terraform Plan (Dev)
+    uses: ./.github/workflows/terraform-plan.yml
+    with:
+        deployment_environment: 'dev'
+    secrets:
+        aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws_region: ${{ secrets.AWS_REGION }}
+
+#  terraform-plan-staging:
+#    needs: terraform-validate
+#
+#    # Re-usable logic from `terraform-plan.yml` workflow
+#    name: Terraform Plan (Staging)
+#    uses: ./.github/workflows/terraform-plan.yml
+#    with:
+#        deployment_environment: 'staging'
+#    secrets:
+#        aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#        aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#        aws_region: ${{ secrets.AWS_REGION }}
