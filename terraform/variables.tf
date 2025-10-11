@@ -29,6 +29,7 @@ variable "app_bucket_name" {
 variable "logs_bucket_name" {
   description = "OPTIONAL: S3 bucket name to store access logs from CloudFront"
   type        = string
+  default     = null
 }
 
 variable "cloud_front_price_class" {
