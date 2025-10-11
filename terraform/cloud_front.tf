@@ -75,11 +75,9 @@ resource "aws_cloudfront_distribution" "app_distribution" {
     # minimum_protocol_version = "TLSv1.2_2021"           # Uncomment for custom domain
   }
 
-  depends_on = var.logs_bucket_name == null ? [
+  depends_on = [
     aws_s3_bucket.app_bucket,
-    ] : [
-    aws_s3_bucket.app_bucket,
-    aws_s3_bucket.logs_bucket[0], # It will be just 1 instance so index 0 access is fine
+    aws_s3_bucket.logs_bucket,  # `depends_on` requires static list expression so TF will resolve this even if a list
   ]
 
   # OPTIONAL (dynamic/content) if logs bucket is created (non empty list)
