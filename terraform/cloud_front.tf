@@ -80,7 +80,7 @@ resource "aws_cloudfront_distribution" "app_distribution" {
       aws_s3_bucket.app_bucket,
     ],
     # Splat [*] produces a list already so simpler to concatenate (even if empty when count is 0) the expression works
-    aws_s3_bucket.logs_bucket[*]
+    [aws_s3_bucket.logs_bucket[*]]  # Concat requires a explicit list so I had to add additional brackets [ ... ]
   )
 
   # OPTIONAL (dynamic/content) if logs bucket is created (non empty list)
