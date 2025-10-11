@@ -267,7 +267,10 @@ commands (see `package.json` file for more details):
 
     ```bash
     cd angular/
-    npm run build     # Compiles into static files at `dist/` folder
-    aws s3 sync dist/ s3://APP-BUCKET-NAME --delete   # `--delete` to remove old files
+    npm run build     # Compiles into static files at `dist/ANGULAR_PROJECT_NAME/PLATFORM_NAME` folder
+    aws s3 sync dist/jv-frontend/browser/ s3://APP-BUCKET-NAME --delete   # `--delete` to remove old files
     ```
+    **NOTE:** `APP-BUCKET-NAME` is `jv-frontend-xxx`,
+    `jv-frontend-angular-app` typically
+<br><br/>
 

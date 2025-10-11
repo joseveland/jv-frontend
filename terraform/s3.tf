@@ -35,13 +35,7 @@ resource "aws_s3_bucket_public_access_block" "app_public_access" {
   restrict_public_buckets = false
 }
 
-# S3 bucket READ-ONLY policy (... Public but READ-ONLY)
-resource "aws_s3_bucket_policy" "app_bucket_policy" {
-  bucket = aws_s3_bucket.app_bucket.id
-  policy = data.aws_iam_policy_document.s3_public_read.json
-}
-
-# IAM Policy Document for Public Read Access
+# Policy document for public (*) read (GetObject) accessing to S3 bucket objects (/*)
 data "aws_iam_policy_document" "s3_public_read" {
   statement {
     principals {
@@ -57,4 +51,15 @@ data "aws_iam_policy_document" "s3_public_read" {
       "${aws_s3_bucket.app_bucket.arn}/*",
     ]
   }
+}
+
+# S3 bucket having the public read policy
+resource "aws_s3_bucket_policy" "app_bucket_policy" {
+  bucket = aws_s3_bucket.app_bucket.id
+  policy = data.aws_iam_policy_document.s3_public_read.json
+
+  # Ensure the public access block is in place (having several `= false`), otherwise public policy doc attach conflicts
+  depends_on = [
+    aws_s3_bucket_public_access_block.app_public_access
+  ]
 }

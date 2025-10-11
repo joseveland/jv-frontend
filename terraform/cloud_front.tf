@@ -28,7 +28,7 @@ resource "aws_cloudfront_distribution" "app_distribution" {
   default_cache_behavior {
     allowed_methods  = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
     cached_methods   = ["GET", "HEAD"]
-    target_origin_id = "S3-${aws_s3_bucket.app_bucket.id}"
+    target_origin_id = "s3-${aws_s3_bucket.app_bucket.id}"    # Matching the previous `origin_id = "s3-${...}`
 
     # Forward all query strings and cookies
     forwarded_values {
