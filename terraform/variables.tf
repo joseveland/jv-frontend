@@ -3,7 +3,7 @@
 variable "project_name" {
   description = "Project name for resource naming"
   type        = string
-  default     = "jv-frontend"  # Mainly to reflect the GitHub repo by looking the AWS resource names themselves
+  default     = "jv-frontend" # Mainly to reflect the GitHub repo by looking the AWS resource names themselves
 }
 
 variable "aws_account_id" {
@@ -34,7 +34,7 @@ variable "logs_bucket_name" {
 variable "cloud_front_price_class" {
   description = "CloudFront price class"
   type        = string
-  default     = "PriceClass_100"    # US/Canada/Europe ... See https://aws.amazon.com/cloudfront/pricing/
+  default     = "PriceClass_100" # US/Canada/Europe ... See https://aws.amazon.com/cloudfront/pricing/
 }
 
 variable "cloud_front_aliases" {

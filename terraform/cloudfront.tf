@@ -21,7 +21,7 @@ resource "aws_cloudfront_distribution" "app_distribution" {
       origin_access_identity = aws_cloudfront_origin_access_identity.app_oai.cloudfront_access_identity_path
     }
     # Unique identifier for this origin (The bucket is already unique name so just `s3-` prefix to quickly identify)
-    origin_id   = "s3-${aws_s3_bucket.app_bucket.id}"
+    origin_id = "s3-${aws_s3_bucket.app_bucket.id}"
   }
 
   # Default cache behavior
@@ -39,7 +39,7 @@ resource "aws_cloudfront_distribution" "app_distribution" {
     }
 
     # SPA routing - forward 404s to index.html
-    response_headers_policy_id = "67f7725c-6f97-4210-82d7-5512b31e9d03"   # Managed-CORS-S3Origin
+    response_headers_policy_id = "67f7725c-6f97-4210-82d7-5512b31e9d03" # Managed-CORS-S3Origin
 
     viewer_protocol_policy = "redirect-to-https"
     min_ttl                = 0
@@ -80,11 +80,11 @@ resource "aws_cloudfront_distribution" "app_distribution" {
     aws_s3_bucket.logs_bucket
   ]
 
-  # OPTIONAL (dynamic) if logs bucket is defined
+  # OPTIONAL (dynamic/content) if logs bucket is defined
   dynamic "logging_config" {
     for_each = var.logs_bucket_name == null ? [] : [1]
     content {
-      bucket = aws_s3_bucket.logs_bucket.bucket_domain_name
+      bucket          = aws_s3_bucket.logs_bucket.bucket_domain_name
       include_cookies = false
       # prefix = "logs/"    # Prefix for better organization in a bucket is typically a folder
     }
@@ -99,7 +99,7 @@ data "aws_iam_policy_document" "s3_policy_with_cloud_front" {
 
   statement {
     principals {
-      type        = "AWS"
+      type = "AWS"
       identifiers = [
         aws_cloudfront_origin_access_identity.app_oai.iam_arn
       ]
