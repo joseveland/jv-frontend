@@ -275,18 +275,86 @@ commands (see `package.json` file for more details):
     ```
     **NOTE:** `--delete` flag to remove files in the bucket (a cleanup
     basically), and `--content-type "auto"` to let AWS CLI set the proper
-    `Content-Type` metadata for each file based on its extension (very
-    important for web browsers to receive it otherwise you'll get
-    a console error about MIME type being `text/plain` instead)
+    `Content-Type` metadata, however I realize the value is "auto" literally)
+    so this command could not be that useful the.
 <br><br/>
 
-3. To access the front end you could do it:
+    * To assign mime-types manually you could:
+      ```shell
+      BUCKET="APP-BUCKET-NAME"    # Linux/MacOS
+      $BUCKET="APP-BUCKET-NAME"   # Windows (Powershell)
+      
+      aws s3 cp "s3://${BUCKET}/" "s3://${BUCKET}/" --recursive \
+        --metadata-directive REPLACE --content-type "text/html" \
+        --exclude  "*" --include "*.html"
+      
+      aws s3 cp "s3://${BUCKET}/" "s3://${BUCKET}/" --recursive \
+        --metadata-directive REPLACE --content-type "text/css" \
+        --exclude  "*" --include "*.css"
+      
+      aws s3 cp "s3://${BUCKET}/" "s3://${BUCKET}/" --recursive \
+        --metadata-directive REPLACE --content-type "application/javascript" \
+        --exclude  "*" --include "*.js"
+      
+      aws s3 cp "s3://${BUCKET}/" "s3://${BUCKET}/" --recursive \
+        --metadata-directive REPLACE --content-type "application/json" \
+        --exclude  "*" --include "*.json"
+      
+      aws s3 cp "s3://${BUCKET}/" "s3://${BUCKET}/" --recursive \
+        --metadata-directive REPLACE --content-type "image/jpeg" \
+        --exclude  "*" --include "*.jpg" --include "*.jpeg"
+      
+      aws s3 cp "s3://${BUCKET}/" "s3://${BUCKET}/" --recursive \
+        --metadata-directive REPLACE --content-type "image/png" \
+        --exclude  "*" --include "*.png"
+      
+      aws s3 cp "s3://${BUCKET}/" "s3://${BUCKET}/" --recursive \
+        --metadata-directive REPLACE --content-type "image/svg+xml" \
+        --exclude  "*" --include "*.svg"
+      
+      aws s3 cp "s3://${BUCKET}/" "s3://${BUCKET}/" --recursive \
+        --metadata-directive REPLACE --content-type "image/x-icon" \
+        --exclude  "*" --include "*.ico"
+      ```
+
+
+## Troubleshooting and Useful Commands
+
+1. To access the front end you could do it:
 
    * Via direct public HTTP web configuration within the S3 bucket. Go for the
-   `http://APP-BUCKET-NAME.s3-website-region.amazonaws.com/index.html`
-   URL (It didn't work yet, lol)
+   `http://APP-BUCKET-NAME.s3-website-REGION.amazonaws.com` URL (for example
+   http://jv-frontend-angular-app.s3-website-us-east-1.amazonaws.com)
 <br><br/>
 
    * Via CloudFront distribution URL (HTTPS), go for the distribution URL
-   `https://DOMAIN-ID.cloudfront.net` (The full URL is seen once deployed)
+   `https://DOMAIN-ID.cloudfront.net` (For example
+   https://dn3n5gin3l7sq.cloudfront.net/). Here be aware of the fact that
+   a cache matter can re-send the same old content even after re-uploading
+   to S3 (for example a change in metadata for `content-type` or so).
 <br><br/>
+
+   * I have Terraform **_outputs_** for both URLs anyway
+   (`s3_bucket_website_endpoint` and `cloud_front_domain_name` ones)
+   for you to copy-paste the URL then
+<br><br/>
+
+2. To clean cache from CloudFront (if needed):
+
+   * Via AWS Console is easier, you need to create `Invalidations`
+   pointing to a CloudFront distribution and file paths
+   (E.g. `/*` path invalidates everything, so cleaning all cache)
+
+     ```shell
+     aws cloudfront create-invalidation \
+        --distribution-id "DEPLOYED-DISTRIBUTION-ID" \
+        --paths "/*"
+     
+     aws cloudfront create-invalidation \
+        --distribution-id "DEPLOYED-DISTRIBUTION-ID" \
+        --paths "/component/demo/*" "/component/other/*"
+     
+     etc...
+     ```
+     **NOTE:** wilcard patterns like `"/*.css"`, `"/*.js"`, `"/*.html"` 
+     are not allowed, so make sure to structure well your code logic
