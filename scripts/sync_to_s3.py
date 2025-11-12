@@ -175,7 +175,7 @@ class S3CloudFrontDeployer:
                 for obj in batch:
                     print(f"\t✅ Deleted: {self.bold(obj['Key'])}")
         else:
-            print("✅ No files to delete.")
+            print("✅ NO files to delete.")
 
     def create_cloud_front_invalidation(self, paths=None):
         """Create CloudFront invalidation for specific paths"""
@@ -202,7 +202,7 @@ class S3CloudFrontDeployer:
         # Remove duplicates
         formatted_paths = list(set(formatted_paths))
 
-        print(f"🔄 Creating invalidation(s) for {len(formatted_paths)} paths:")
+        print(f"🔄 Creating invalidation for Distribution `{self.distribution_id}` ({len(formatted_paths)} paths):")
         for path in formatted_paths:
             print(f"\t{path}")
 
@@ -225,7 +225,7 @@ class S3CloudFrontDeployer:
                 )
 
             invalidation_id = response['Invalidation']['Id']
-            print(f"\t✅ Invalidation created for Distribution `{self.distribution_id}`: {invalidation_id}")
+            print(f"\t✅ Invalidation created: {invalidation_id}")
 
             # Optional: Wait for invalidation to complete
             self._wait_for_invalidation_completion(invalidation_id)
@@ -233,7 +233,7 @@ class S3CloudFrontDeployer:
             return invalidation_id
 
         except Exception as e:
-            print(f"\t❌ Error creating invalidation for Distribution `{self.distribution_id}`: {e}")
+            print(f"\t❌ Error creating invalidation: {e}")
             return None
 
     def _wait_for_invalidation_completion(self, invalidation_id, timeout=300):
@@ -278,7 +278,7 @@ class S3CloudFrontDeployer:
     ):
         # Create CloudFront invalidation if needed (Or forced)
         if forced_invalidations:
-            print("📝 Forced invalidations...")
+            print("📝 Forced CloudFront invalidations...")
             for forced_key in forced_invalidations:
                 bold_text = self.bold(forced_key)
                 if (forced_key in local_keys) or (forced_key in s3_keys):
@@ -290,7 +290,7 @@ class S3CloudFrontDeployer:
         if self.uploaded_files:
             self.create_cloud_front_invalidation()
         else:
-            print("✅ No CloudFront invalidation needed.")
+            print("✅ NO CloudFront invalidation needed.")
 
     def sync(self, delete=False, parallel=10, s3_keys_for_invalidation: Optional[List[str]] = None):
         """Perform smart sync with change detection"""
@@ -322,7 +322,7 @@ class S3CloudFrontDeployer:
         if files_to_upload:
             self._handle_uploads(files_to_upload, parallel)
         else:
-            print("✅ No files need uploading.")
+            print("✅ NO files need uploading.")
 
         # Handle deletion
         if delete:

@@ -7,13 +7,6 @@ on:
         description: 'Deployment environment to be used'
         required: true
         type: string
-    secrets:
-      aws_region:
-        required: true
-      aws_access_key_id:
-        required: true
-      aws_secret_access_key:
-        required: true
 
 
 env:  # Default stuff for all jobs
@@ -48,6 +41,7 @@ jobs:
     - name: Terraform Init
       id: init
       run: |
+        echo "Hi ${{ env.AWS_REGION }}"
         cd terraform
         terraform init \
           -backend-config="env/${{ env.DEPLOYMENT }}/backend.tfvars"
