@@ -263,23 +263,35 @@ and the target is `build` that is defined as `ng build` command
 
 2. Once everything is deployed, the app needs to be compiled and uploaded
 to the S3 bucket, this can be done using Angular CLI and AWS CLI
-commands (see `package.json` file for more details):
+commands:
 
     ```bash
     cd angular/
     npm run build     # Compiles into static files at `dist/ANGULAR_PROJECT_NAME/PLATFORM_NAME` folder
     aws s3 sync \
-      --content-type "auto" --delete \
-      dist/jv-frontend/browser/ \
-      s3://APP-BUCKET-NAME
+      --content-type "MANUAL_MIME_TYPE" --delete \
+      "dist/jv-frontend/browser/" \
+      "s3://APP-BUCKET-NAME""
     ```
     **NOTE:** `--delete` flag to remove files in the bucket (a cleanup
-    basically), and `--content-type "auto"` to let AWS CLI set the proper
-    `Content-Type` metadata, however I realize the value is "auto" literally)
-    so this command could not be that useful the.
+    basically), and `--content-type ` doesn't work too well as I need
+    to identify each mime-type and manually set that for CloudFront to
+    handle the client retrieval in the right way, so I better created a
+    python script to do this automatically while aware of caching (see below)
 <br><br/>
 
-    * To assign mime-types manually you could:
+    ```bash
+    cd angular/
+    npm run build
+    pip install -r ../scripts/requirements.txt
+    python ../scripts/sync_to_s3.py "dist/jv-frontend/browser/" \
+      "APP-BUCKET-NAME" \
+      "CLOUDFRONT-DISTRIBUTION-ID" \
+      --force "custom.html"
+    ```
+
+    * If already uploaded, and you want to assign mime-types manually you
+   could do something like this with AWS CLI:
       ```shell
       BUCKET="APP-BUCKET-NAME"    # Linux/MacOS
       $BUCKET="APP-BUCKET-NAME"   # Windows (Powershell)
