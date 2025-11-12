@@ -21,6 +21,10 @@ jobs:
     # Re-usable logic from `terraform-plan.yml` workflow
     name: Terraform Plan
     uses: ./.github/workflows/terraform-plan.yml  # This produces the plan artifact used by `terraform-apply` job below
+
+    # Points to the repo's "Environments": where I have hardcoded, inputs or `secrets.Xxx` used later on
+    environment: ${{ github.event.inputs.deployment_environment }}
+
     with:
         # Passing this one, the inner `.yml` will point to the right `environment: ...`
         deployment_environment: ${{ github.event.inputs.deployment_environment }}   # Limiting by `workflow_dispatch` inputs
