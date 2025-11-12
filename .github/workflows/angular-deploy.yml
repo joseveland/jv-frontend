@@ -74,8 +74,7 @@ jobs:
         python-version: ${{ env.PYTHON_VERSION }}
 
     - name: Python deploy to S3 and CloudFront
-      # The repo's "Environment" already brings `env.AWS_Xxx` so no need to re-define or similar for the python
-      # script to use the boto3 AWS SDK properly
+      # The repo's "Environment" already brings `env.AWS_Xxx` as previously converted from `secrets.Xxx` so good to go
       run: |
         python -m pip install --upgrade pip
         pip install -r scripts/requirements.txt
