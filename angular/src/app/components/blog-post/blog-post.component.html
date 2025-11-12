@@ -1,0 +1,53 @@
+<!-- src/app/components/blog-post/blog-post.component.html -->
+<div class="blog-post-container" *ngIf="post">
+  <article class="blog-post">
+    <header class="post-header">
+      <button class="back-button" (click)="goBack()">
+        ← Back to Blog
+      </button>
+
+      <h1 class="post-title">{{ post.title }}</h1>
+
+      <div class="post-meta">
+        <div class="meta-left">
+          <span class="author">By {{ post.author }}</span>
+          <span class="date">{{ formatDate(post.publishedDate) }}</span>
+          <span class="read-time">{{ post.readTime }} min read</span>
+        </div>
+      </div>
+
+      <div class="tags">
+        <span *ngFor="let tag of post.tags" class="tag">{{ tag }}</span>
+      </div>
+    </header>
+
+    <div class="post-content">
+      <markdown [data]="post.content"></markdown>
+    </div>
+
+    <footer class="post-footer">
+      <div class="author-bio">
+        <h3>About the Author</h3>
+        <p>{{ getAuthorAbout(post.author) }}</p>
+      </div>
+    </footer>
+  </article>
+
+  <aside class="sidebar">
+    <div class="recent-posts">
+      <h3>Recent Posts</h3>
+      <div
+        *ngFor="let recentPost of recentPosts"
+        class="recent-post-card"
+        (click)="navigateToPost(recentPost.slug)"
+      >
+        <h4>{{ recentPost.title }}</h4>
+        <span class="recent-date">{{ formatDate(recentPost.publishedDate) }}</span>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<div *ngIf="!post" class="loading">
+  <p>Loading post...</p>
+</div>

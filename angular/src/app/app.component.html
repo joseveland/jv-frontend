@@ -1,3 +1,29 @@
-<h1>Hello! {{ title }}</h1>
+<!-- src/app/app.component.html -->
+<div class="app-container">
+  <header class="app-header">
+    <nav class="navbar">
+      <div class="nav-brand">
+        <h1>{{ title }}</h1>
+      </div>
+      <div class="nav-links">
+        <a routerLink="/blog" routerLinkActive="active">Blog</a>
+        <a href="/about">About</a>
+        <a href="/contact">Contact</a>
+      </div>
+    </nav>
+  </header>
 
-<router-outlet />
+  <main class="main-content">
+    <router-outlet></router-outlet>
+  </main>
+
+  <footer class="app-footer">
+    <div class="footer-content">
+      <p>&copy; 2025 JV. All rights reserved.</p>
+      <div class="social-links">
+        <a target="_blank" href="https://github.com/joseveland" aria-label="GitHub">GitHub</a>
+        <a target="_blank" href="https://www.linkedin.com/in/josevelandia" aria-label="LinkedIn">LinkedIn</a>
+      </div>
+    </div>
+  </footer>
+</div>

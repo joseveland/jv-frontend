@@ -1,0 +1,55 @@
+<!-- src/app/components/blog-list/blog-list.component.html -->
+<div class="blog-list-container">
+  <header class="blog-header">
+    <h1>Personal Blog</h1>
+    <p class="subtitle">Sharing thoughts, experiences, and knowledge</p>
+  </header>
+
+  <div class="blog-controls">
+    <div class="search-box">
+      <input
+        type="text"
+        placeholder="Search posts..."
+        [(ngModel)]="searchTerm"
+        (input)="onSearchChange()"
+        class="search-input"
+      >
+      <span class="search-icon">🔍</span>
+    </div>
+  </div>
+
+  <div class="blog-grid">
+    <div
+      *ngFor="let post of filteredPosts"
+      class="blog-card"
+      (click)="navigateToPost(post.slug)"
+    >
+      <div class="card-header">
+        <h2 class="post-title">{{ post.title }}</h2>
+        <div class="post-meta">
+          <span class="date">{{ formatDate(post.publishedDate) }}</span>
+          <span class="read-time">{{ post.readTime }} min read</span>
+        </div>
+      </div>
+
+      <p class="post-excerpt">{{ post.excerpt }}</p>
+
+      <div class="card-footer">
+        <div class="tags">
+          <span
+            *ngFor="let tag of post.tags"
+            class="tag"
+            (click)="$event.stopPropagation(); onTagSelect(tag)"
+          >
+            {{ tag }}
+          </span>
+        </div>
+        <span class="author">By {{ post.author }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="filteredPosts.length === 0" class="no-posts">
+    <p>No blog posts found matching your criteria.</p>
+  </div>
+</div>
