@@ -29,6 +29,12 @@
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              "src/assets",
+              {
+                "glob": "**/*.md",
+                "input": "src/assets/blog-posts",
+                "output": "/assets/blog-posts"
               }
             ],
             "styles": [
@@ -88,6 +94,12 @@
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              "src/assets",
+              {
+                "glob": "**/*.md",
+                "input": "src/assets/blog-posts",
+                "output": "/assets/blog-posts"
               }
             ],
             "styles": [
