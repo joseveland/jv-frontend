@@ -1,0 +1,84 @@
+name: Build and Deploy Angular App
+
+on:
+  workflow_dispatch:  # Adds a "Run workflow" button in Actions UI
+    inputs:
+      deployment_environment:
+        description: 'Deployment environment to be used'
+        required: true
+        type: choice
+        default: 'dev'
+        options:  # Add others like 'staging', 'prod', etc... as they exist in the repo's "Environments"
+          - dev
+          - staging
+
+env:
+  NODE_VERSION: '20.x'
+  PYTHON_VERSION: '3.12'
+  APP_NAME: 'jv-frontend'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    # Points to the repo's "Environments": where `secrets.Xxx` will be accessed next
+    environment: ${{ github.event.inputs.deployment_environment }}
+
+    env:  # The repo's "Environment" already brings `env.AWS_REGION` so no need to re-declare next
+      # Moving AWS access from the Environment secrets, as OS-Environments for `boto3` library to use later on
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch all history for proper versioning
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: |
+        echo "Making sure... {{ env.AWS_REGION }}"
+        cd angular/
+        npm ci
+
+    - name: Run tests
+      run: |
+        cd angular/
+        npm run test -- --watch=false --browsers=ChromeHeadless
+
+    - name: Build Angular app
+      run: |
+        cd angular/
+        npm run build -- --configuration=production
+        
+      env:
+        # Add any build-time environment variables here
+        NODE_ENV: production
+        NG_BUILD_ENV: production
+
+    - name: Verify build output
+      run: |
+        cd angular/
+        echo "Checking for index.html:"
+        find dist/*/browser/ -name "index.html" -type f
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Python deploy to S3 and CloudFront
+      # The repo's "Environment" already brings `env.AWS_Xxx` as previously converted from `secrets.Xxx` so good to go
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r scripts/requirements.txt
+        python scripts/sync_to_s3.py \
+          "dist/${{ env.APP_NAME }}/browser/" \
+          "${{ env.APP_NAME }}-angular-app" \
+          "${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}"

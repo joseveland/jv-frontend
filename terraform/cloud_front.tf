@@ -43,10 +43,13 @@ resource "aws_cloudfront_distribution" "app_distribution" {
 
     viewer_protocol_policy = "redirect-to-https"
     min_ttl                = 0
-    default_ttl            = 600
-    max_ttl                = 1200
+    default_ttl            = 3600
+    max_ttl                = 86400
     compress               = true
   }
+
+  # OPTIONAL: Additional longest cache behaviors can be defined here for relatively fixed content (images, videos, etc.)
+  # ordered_cache_behavior {...}
 
   # Custom error responses for SPA routing
   custom_error_response {
