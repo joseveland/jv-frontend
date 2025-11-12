@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import hashlib
+import sys
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import List, Optional, Tuple, Iterable
@@ -134,13 +135,15 @@ class S3CloudFrontDeployer:
                 )
             # Tracking uploaded files for invalidation
             self.uploaded_files.add(s3_key)
-            return True, f"✅ Uploaded: {s3_key} ({content_type}) [Cache: {cache_control}]"
+            return True, f"✅ Uploaded: {self.bold(s3_key)} ({content_type}) [Cache: {cache_control}]"
 
-        except Exception as e:
-            return False, f"❌ Error uploading {s3_key}: {e}"
+        except Exception as exc:
+            return False, f"❌ Error uploading {self.bold(s3_key)}: {exc}"
 
     def _handle_uploads(self, files_to_upload: List[Tuple[str, str]], parallel: int):
         print(f"📤 Uploading {len(files_to_upload)} files...")
+
+        one_file_failed = False
         with ThreadPoolExecutor(max_workers=parallel) as executor:
             future_to_file = [
                 executor.submit(self.upload_file, local_path, s3_key)
@@ -148,8 +151,14 @@ class S3CloudFrontDeployer:
             ]
 
             for future in as_completed(future_to_file):
-                _success, message = future.result()
-                print(f'\t{message}')   # The `message` already contains success/failure icon
+                success, message = future.result()
+                print(f'\t{message}')
+                if not success:
+                    one_file_failed = True
+
+        if one_file_failed:
+            print("\t❌ Some files failed to upload. Can NOT longer continue.")
+            sys.exit(250)   # I can't continue if some files failed to complete the s3 upload
 
     def _delete_extra_files(self, local_keys, s3_keys):
         """Delete files in S3 that don't exist locally"""
@@ -175,7 +184,7 @@ class S3CloudFrontDeployer:
                 for obj in batch:
                     print(f"\t✅ Deleted: {self.bold(obj['Key'])}")
         else:
-            print("✅ No files to delete.")
+            print("✅ NO files to delete.")
 
     def create_cloud_front_invalidation(self, paths=None):
         """Create CloudFront invalidation for specific paths"""
@@ -202,9 +211,9 @@ class S3CloudFrontDeployer:
         # Remove duplicates
         formatted_paths = list(set(formatted_paths))
 
-        print(f"🔄 Creating invalidation(s) for {len(formatted_paths)} paths:")
+        print(f"🔄 Creating invalidation for Distribution `{self.distribution_id}` ({len(formatted_paths)} paths):")
         for path in formatted_paths:
-            print(f"\t{path}")
+            print(f"\t{self.bold(path)}")
 
         try:
             if self.debug:  # Emulate valid upload just to visualize changes
@@ -225,15 +234,15 @@ class S3CloudFrontDeployer:
                 )
 
             invalidation_id = response['Invalidation']['Id']
-            print(f"\t✅ Invalidation created for Distribution `{self.distribution_id}`: {invalidation_id}")
+            print(f"\t✅ Invalidation created: {invalidation_id}")
 
             # Optional: Wait for invalidation to complete
             self._wait_for_invalidation_completion(invalidation_id)
 
             return invalidation_id
 
-        except Exception as e:
-            print(f"\t❌ Error creating invalidation for Distribution `{self.distribution_id}`: {e}")
+        except Exception as exc:
+            print(f"\t❌ Error creating invalidation: {exc}")
             return None
 
     def _wait_for_invalidation_completion(self, invalidation_id, timeout=300):
@@ -266,8 +275,8 @@ class S3CloudFrontDeployer:
                     print(f"\t\t❓ Unexpected invalidation status: {status}")
                     return False
 
-            except Exception as e:
-                print(f"\t\t❌ Error checking invalidation status: {e}")
+            except Exception as exc:
+                print(f"\t\t❌ Error checking invalidation status: {exc}")
                 return False
 
         print("\t\t⏰ Timeout waiting for invalidation completion")
@@ -278,7 +287,7 @@ class S3CloudFrontDeployer:
     ):
         # Create CloudFront invalidation if needed (Or forced)
         if forced_invalidations:
-            print("📝 Forced invalidations...")
+            print("📝 Forced CloudFront invalidations...")
             for forced_key in forced_invalidations:
                 bold_text = self.bold(forced_key)
                 if (forced_key in local_keys) or (forced_key in s3_keys):
@@ -290,7 +299,7 @@ class S3CloudFrontDeployer:
         if self.uploaded_files:
             self.create_cloud_front_invalidation()
         else:
-            print("✅ No CloudFront invalidation needed.")
+            print("✅ NO CloudFront invalidation needed.")
 
     def sync(self, delete=False, parallel=10, s3_keys_for_invalidation: Optional[List[str]] = None):
         """Perform smart sync with change detection"""
@@ -322,7 +331,7 @@ class S3CloudFrontDeployer:
         if files_to_upload:
             self._handle_uploads(files_to_upload, parallel)
         else:
-            print("✅ No files need uploading.")
+            print("✅ NO files need uploading.")
 
         # Handle deletion
         if delete:

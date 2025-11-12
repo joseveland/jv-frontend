@@ -80,8 +80,10 @@ jobs:
     # Re-usable logic from `terraform-plan.yml` workflow
     name: Terraform Plan (Dev)
     uses: ./.github/workflows/terraform-plan.yml
+
     with:
-        deployment_environment: 'dev'
+        # Useful to point the right `terraform/env/**` subfolder, but also for the `environment:` selection of the inner `.yml`
+        terraform_environment: 'dev'
     secrets:
         aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -93,8 +95,10 @@ jobs:
 #    # Re-usable logic from `terraform-plan.yml` workflow
 #    name: Terraform Plan (Staging)
 #    uses: ./.github/workflows/terraform-plan.yml
+#
 #    with:
-#        deployment_environment: 'staging'
+#        # Useful to point the right `terraform/env/**` subfolder, but also for the `environment:` selection of the inner `.yml`
+#        terraform_environment: 'staging'
 #    secrets:
 #        aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
 #        aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

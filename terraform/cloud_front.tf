@@ -99,10 +99,6 @@ resource "aws_cloudfront_distribution" "app_distribution" {
 
 # Policy document that allows CloudFront OAI to access S3 (GetObject like READ-ONLY is enough for a static website)
 data "aws_iam_policy_document" "s3_policy_with_cloud_front" {
-  source_policy_documents = [
-    data.aws_iam_policy_document.s3_public_read.json
-  ]
-
   statement {
     principals {
       type = "AWS"
@@ -117,6 +113,9 @@ data "aws_iam_policy_document" "s3_policy_with_cloud_front" {
       "${aws_s3_bucket.app_bucket.arn}/*",
     ]
   }
+
+  # Explicit dependency to ensure bucket exists (therefore ARN is valid) before policy doc creation
+  depends_on = [aws_s3_bucket.app_bucket]
 }
 
 # That policy above goes to my app's S3 bucket
