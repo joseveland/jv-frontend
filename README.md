@@ -337,9 +337,10 @@ commands:
    * Via direct public HTTP web configuration within the S3 bucket. Go for the
    `http://APP-BUCKET-NAME.s3-website-REGION.amazonaws.com` URL (for example
    http://jv-frontend-angular-app.s3-website-us-east-1.amazonaws.com)
-   **[I end up blocking the public permissions to the bucket in terraform code
-   so avoiding public access therefore no direct HTTP will be available after
-   this commit]**
+   
+     * **[I end up blocking the public permissions to the bucket in terraform code,
+     so avoiding that public access which can be verified through the bucket's
+     "Permission" tab, therefore no direct HTTP will be available after this commit]**
 <br><br/>
 
    * Via CloudFront distribution URL (HTTPS), go for the distribution URL
