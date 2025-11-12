@@ -3,10 +3,17 @@ name: Shared Terraform Plan
 on:
   workflow_call:  # This means this workflow (.yml) is called by another workflow (.yml)
     inputs:
-      deployment_environment:
+      terraform_environment:
         description: 'Deployment environment to be used'
         required: true
         type: string
+    secrets:
+      aws_region:
+        required: true
+      aws_access_key_id:
+        required: true
+      aws_secret_access_key:
+        required: true
 
 
 env:  # Default stuff for all jobs
@@ -18,13 +25,12 @@ jobs:
     name: Terraform Init-Plan-[Artifact]-[Comment-PR]
     runs-on: ubuntu-latest
 
-    # Points to the repo's "Environments": where I have hardcoded, inputs or `secrets.Xxx` used later on
-    environment: ${{ inputs.deployment_environment }}
+    # Points to the repo's "Environments": where I have hardcoded inputs or `secrets.Xxx` used  within this job
+    environment: ${{ inputs.terraform_environment }}
 
     env:
-      # Simply translating the input value to an env var
-      DEPLOYMENT: ${{ inputs.deployment_environment }}
-      # Moving AWS secrets to OS-environments for terraform to use
+      # Simply translating the input values of this `.yml` to env vars, for terraform to use later on
+      DEPLOYMENT: ${{ inputs.terraform_environment }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -41,7 +47,6 @@ jobs:
     - name: Terraform Init
       id: init
       run: |
-        echo "Hi ${{ env.AWS_REGION }}"
         cd terraform
         terraform init \
           -backend-config="env/${{ env.DEPLOYMENT }}/backend.tfvars"

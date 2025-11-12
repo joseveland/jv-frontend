@@ -22,12 +22,13 @@ jobs:
     name: Terraform Plan
     uses: ./.github/workflows/terraform-plan.yml  # This produces the plan artifact used by `terraform-apply` job below
 
-    # Points to the repo's "Environments": where I have hardcoded, inputs or `secrets.Xxx` used later on
-    environment: ${{ github.event.inputs.deployment_environment }}
-
     with:
-        # Passing this one, the inner `.yml` will point to the right `environment: ...`
-        deployment_environment: ${{ github.event.inputs.deployment_environment }}   # Limiting by `workflow_dispatch` inputs
+        # Useful to point the right `terraform/env/**` subfolder
+        terraform_environment: ${{ github.event.inputs.deployment_environment }}  # Guided by `workflow_dispatch` inputs
+    secrets:
+        aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws_region: ${{ secrets.AWS_REGION }}
 
   terraform-apply:
     name: Terraform Apply
@@ -40,7 +41,7 @@ jobs:
     env:
       # The selected input will be `env.DEPLOYMENT` to match the `terraform/env/**` subfolders
       DEPLOYMENT: ${{ github.event.inputs.deployment_environment }}
-      # Moving AWS secrets to OS-environments for terraform to use
+      # Moving the GitHub environment-secrets to environments-variables for terraform to use later on
       AWS_REGION: ${{ secrets.AWS_REGION }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

@@ -81,12 +81,12 @@ jobs:
     name: Terraform Plan (Dev)
     uses: ./.github/workflows/terraform-plan.yml
 
-    # Points to the repo's "Environments": where I have hardcoded, inputs or `secrets.Xxx` used later on
-    environment: ${{ github.event.inputs.deployment_environment }}
-
     with:
-        # Passing this one, the inner `.yml` will point to the right `environment: ...`
-        deployment_environment: 'dev'
+        terraform_environment: 'dev'  # Useful to point the right `terraform/env/**` subfolder
+    secrets:
+        aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws_region: ${{ secrets.AWS_REGION }}
 
 #  terraform-plan-staging:
 #    needs: terraform-validate
@@ -95,9 +95,9 @@ jobs:
 #    name: Terraform Plan (Staging)
 #    uses: ./.github/workflows/terraform-plan.yml
 #
-#    # Points to the repo's "Environments": where I have hardcoded, inputs or `secrets.Xxx` used later on
-#    environment: ${{ github.event.inputs.deployment_environment }}
-#
 #    with:
-#        # Passing this one, the inner `.yml` will point to the right `environment: ...`
-#        deployment_environment: 'staging'
+#        terraform_environment: 'staging'   # Useful to point the right `terraform/env/**` subfolder
+#    secrets:
+#        aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#        aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#        aws_region: ${{ secrets.AWS_REGION }}
