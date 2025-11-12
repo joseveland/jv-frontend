@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import hashlib
+import sys
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import List, Optional, Tuple, Iterable
@@ -134,13 +135,15 @@ class S3CloudFrontDeployer:
                 )
             # Tracking uploaded files for invalidation
             self.uploaded_files.add(s3_key)
-            return True, f"✅ Uploaded: {s3_key} ({content_type}) [Cache: {cache_control}]"
+            return True, f"✅ Uploaded: {self.bold(s3_key)} ({content_type}) [Cache: {cache_control}]"
 
-        except Exception as e:
-            return False, f"❌ Error uploading {s3_key}: {e}"
+        except Exception as exc:
+            return False, f"❌ Error uploading {self.bold(s3_key)}: {exc}"
 
     def _handle_uploads(self, files_to_upload: List[Tuple[str, str]], parallel: int):
         print(f"📤 Uploading {len(files_to_upload)} files...")
+
+        one_file_failed = False
         with ThreadPoolExecutor(max_workers=parallel) as executor:
             future_to_file = [
                 executor.submit(self.upload_file, local_path, s3_key)
@@ -148,8 +151,14 @@ class S3CloudFrontDeployer:
             ]
 
             for future in as_completed(future_to_file):
-                _success, message = future.result()
-                print(f'\t{message}')   # The `message` already contains success/failure icon
+                success, message = future.result()
+                print(f'\t{message}')
+                if not success:
+                    one_file_failed = True
+
+        if one_file_failed:
+            print("\t❌ Some files failed to upload. Can NOT longer continue.")
+            sys.exit(250)   # I can't continue if some files failed to complete the s3 upload
 
     def _delete_extra_files(self, local_keys, s3_keys):
         """Delete files in S3 that don't exist locally"""
@@ -204,7 +213,7 @@ class S3CloudFrontDeployer:
 
         print(f"🔄 Creating invalidation for Distribution `{self.distribution_id}` ({len(formatted_paths)} paths):")
         for path in formatted_paths:
-            print(f"\t{path}")
+            print(f"\t{self.bold(path)}")
 
         try:
             if self.debug:  # Emulate valid upload just to visualize changes
@@ -232,8 +241,8 @@ class S3CloudFrontDeployer:
 
             return invalidation_id
 
-        except Exception as e:
-            print(f"\t❌ Error creating invalidation: {e}")
+        except Exception as exc:
+            print(f"\t❌ Error creating invalidation: {exc}")
             return None
 
     def _wait_for_invalidation_completion(self, invalidation_id, timeout=300):
@@ -266,8 +275,8 @@ class S3CloudFrontDeployer:
                     print(f"\t\t❓ Unexpected invalidation status: {status}")
                     return False
 
-            except Exception as e:
-                print(f"\t\t❌ Error checking invalidation status: {e}")
+            except Exception as exc:
+                print(f"\t\t❌ Error checking invalidation status: {exc}")
                 return False
 
         print("\t\t⏰ Timeout waiting for invalidation completion")
