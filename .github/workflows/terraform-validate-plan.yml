@@ -81,11 +81,8 @@ jobs:
     name: Terraform Plan (Dev)
     uses: ./.github/workflows/terraform-plan.yml
     with:
+        # Passing this one, the inner `.yml` will point to the right `environment: ...`
         deployment_environment: 'dev'
-    secrets:
-        aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws_region: ${{ secrets.AWS_REGION }}
 
 #  terraform-plan-staging:
 #    needs: terraform-validate
@@ -94,8 +91,5 @@ jobs:
 #    name: Terraform Plan (Staging)
 #    uses: ./.github/workflows/terraform-plan.yml
 #    with:
+#        # Passing this one, the inner `.yml` will point to the right `environment: ...`
 #        deployment_environment: 'staging'
-#    secrets:
-#        aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-#        aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-#        aws_region: ${{ secrets.AWS_REGION }}

@@ -25,7 +25,7 @@ jobs:
     name: Terraform Init-Plan-[Artifact]-[Comment-PR]
     runs-on: ubuntu-latest
 
-    # Points to the repo's "Environments": Hardcoded, inputs or `matrix.Xxx` will work (`env.Xxx` WON'T work)
+    # Points to the repo's "Environments": where I have hardcoded, inputs or `secrets.Xxx` used later on
     environment: ${{ inputs.deployment_environment }}
 
     env:

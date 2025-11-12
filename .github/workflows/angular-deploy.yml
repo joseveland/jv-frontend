@@ -21,7 +21,7 @@ jobs:
   build-and-deploy:
     name: Build and Deploy
 
-    # Points to the repo's "Environments": where `secrets.Xxx` will be accessed later on
+    # Points to the repo's "Environments": where I have hardcoded, inputs or `secrets.Xxx` used later on
     environment: ${{ github.event.inputs.deployment_environment }}
 
     runs-on: ubuntu-latest
@@ -45,8 +45,6 @@ jobs:
 
     - name: Install Node.js dependencies
       run: |
-        echo "Making sure... ${{ env.AWS_REGION }}"
-        echo "Making secrets... ${{ secrets.AWS_REGION }}"
         npm ci
 
     - name: Run tests
