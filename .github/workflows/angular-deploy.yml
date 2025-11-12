@@ -40,7 +40,8 @@ jobs:
       with:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
-        cache-dependency-path: package-lock.json
+        # Full path from repo root not required due to previous `defaults.run.working-directory` definition.
+        cache-dependency-path: 'angular/package-lock.json'    # However this could be an option too.
 
     - name: Install Node.js dependencies
       run: |
