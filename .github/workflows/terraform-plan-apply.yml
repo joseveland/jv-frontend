@@ -23,7 +23,7 @@ jobs:
     uses: ./.github/workflows/terraform-plan.yml  # This produces the plan artifact used by `terraform-apply` job below
 
     with:
-        # Useful to point the right `terraform/env/**` subfolder
+        # Useful to point the right `terraform/env/**` subfolder, but also for the `environment:` selection of the inner `.yml`
         terraform_environment: ${{ github.event.inputs.deployment_environment }}  # Guided by `workflow_dispatch` inputs
     secrets:
         aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -35,7 +35,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: terraform-plan
 
-    # Points to the repo's "Environments": where I have hardcoded, inputs or `secrets.Xxx` used later on
+    # Points to the repo's "Environments": where I have hardcoded inputs or `secrets.Xxx` used  within this job
     environment: ${{ github.event.inputs.deployment_environment }}
 
     env:
