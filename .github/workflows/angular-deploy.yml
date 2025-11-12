@@ -40,12 +40,13 @@ jobs:
       with:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
-        # Full path from repo root not required due to previous `defaults.run.working-directory` definition.
-        cache-dependency-path: 'angular/package-lock.json'    # However this could be an option too.
+        # `cache-dependency-path` not required due to `defaults.run.working-directory` definition.
+        # cache-dependency-path: 'angular/package-lock.json'  # However full path from repo root is valid too
 
     - name: Install Node.js dependencies
       run: |
-        echo "Making sure... {{ env.AWS_REGION }}"
+        echo "Making sure... ${{ env.AWS_REGION }}"
+        echo "Making secrets... ${{ secrets.AWS_REGION }}"
         npm ci
 
     - name: Run tests
@@ -74,12 +75,12 @@ jobs:
         aws-region: ${{ secrets.AWS_REGION }}
 
     - name: Python deploy to S3 and CloudFront
-      working-directory: .  # Change the default `./angular` back to root of this repo, for Python script run next
       # The repo's "Environment" already brings `env.AWS_Xxx` as previously converted from `secrets.Xxx` so good to go
+      # About `../` usages it's because of the `defaults.run.working-directory` definition at the `./angular` folder
       run: |
         python -m pip install --upgrade pip
-        pip install -r scripts/requirements.txt
-        python scripts/sync_to_s3.py \
+        pip install -r ../scripts/requirements.txt
+        python ../scripts/sync_to_s3.py \
           "dist/${{ env.APP_NAME }}/browser/" \
           "${{ env.APP_NAME }}-angular-app" \
           "${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}"
