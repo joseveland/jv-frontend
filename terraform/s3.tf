@@ -26,43 +26,11 @@ resource "aws_s3_bucket_website_configuration" "app_www_config" {
 }
 
 # S3 bucket public hosting (Static website publicly accessible ...)
-resource "aws_s3_bucket_public_access_block" "app_public_access" {
-  bucket = aws_s3_bucket.app_bucket.id
+resource "aws_s3_bucket_public_access_block" "app_s3_private_access_only" {
+  bucket = aws_s3_bucket.app_bucket.id    # NOTICE this is the app's bucket not the log's one
 
-  block_public_acls       = false
-  block_public_policy     = false
-  ignore_public_acls      = false
-  restrict_public_buckets = false
-}
-
-# Policy document for public (*) read (GetObject) accessing to S3 bucket objects (/*)
-data "aws_iam_policy_document" "s3_public_read" {
-  statement {
-    principals {
-      type        = "*"
-      identifiers = ["*"]
-    }
-
-    actions = [
-      "s3:GetObject",
-    ]
-
-    resources = [
-      "${aws_s3_bucket.app_bucket.arn}/*",
-    ]
-  }
-  
-  # Explicit dependency to ensure bucket exists (therefore ARN is valid) before policy doc creation
-  depends_on = [aws_s3_bucket.app_bucket]
-}
-
-# S3 bucket having the public read policy
-resource "aws_s3_bucket_policy" "app_bucket_policy" {
-  bucket = aws_s3_bucket.app_bucket.id
-  policy = data.aws_iam_policy_document.s3_public_read.json
-
-  # Ensure the public access block is in place (having several `= false`), otherwise public policy doc attach conflicts
-  depends_on = [
-    aws_s3_bucket_public_access_block.app_public_access
-  ]
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
 }
