@@ -51,6 +51,9 @@ data "aws_iam_policy_document" "s3_public_read" {
       "${aws_s3_bucket.app_bucket.arn}/*",
     ]
   }
+  
+  # Explicit dependency to ensure bucket exists (therefore ARN is valid) before policy doc creation
+  depends_on = [aws_s3_bucket.app_bucket]
 }
 
 # S3 bucket having the public read policy

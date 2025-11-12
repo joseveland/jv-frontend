@@ -117,6 +117,9 @@ data "aws_iam_policy_document" "s3_policy_with_cloud_front" {
       "${aws_s3_bucket.app_bucket.arn}/*",
     ]
   }
+
+  # Explicit dependency to ensure bucket exists (therefore ARN is valid) before policy doc creation
+  depends_on = [aws_s3_bucket.app_bucket]
 }
 
 # That policy above goes to my app's S3 bucket
