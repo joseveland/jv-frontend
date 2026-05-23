@@ -1,5 +1,5 @@
 aws_account_id = "616197300755"
-aws_region     = "us-east-1"
+aws_region     = "us-east-2"
 environment    = "dev"
 
 app_bucket_name = "angular-app"

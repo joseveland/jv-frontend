@@ -1,7 +1,7 @@
 ## Summary and Setup
 
 * This is a frontend project based on `S3` and `Cloudfront` (written in
-Angular) which will be the UI core of my personal API.
+Angular) which will be the UI core of my portfolio.
 <br></br>
 
   * Infrastructure deployable into AWS, so I installed
@@ -13,7 +13,7 @@ Angular) which will be the UI core of my personal API.
 * At AWS console:
 <br></br>
 
-  * I had to create a baseline AWS policy named `terraform-deployer`
+  * I had to create a baseline AWS **policy** named `terraform-deployer`
   with enough permissions to create IAM users, roles, policies, lambdas,
   cloudwatch logs, etc.
   <br></br>
@@ -54,7 +54,8 @@ Angular) which will be the UI core of my personal API.
     this and many other repositories
   <br></br>
 
-  * I added an access key to that user to be able to have
+  * I added an access key (unsafe if shared, safe if a
+  static secret) linked to that user to be able to have
   `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment variables
   useful for both local development and GitHub Actions when using
   AWS CLI and Terraform commands
@@ -78,7 +79,7 @@ each carrying the following:
     * Repository environment-secrets:
       * `AWS_ACCESS_KEY_ID` - From the AWS user created above
       * `AWS_SECRET_ACCESS_KEY` - From the AWS user created above
-      * `AWS_REGION` - e.g., `us-east-1`
+      * `AWS_REGION` - e.g., `us-east-2`
     
     * Repository environment-variables:
       * ...
@@ -336,7 +337,7 @@ commands:
 
    * Via direct public HTTP web configuration within the S3 bucket. Go for the
    `http://APP-BUCKET-NAME.s3-website-REGION.amazonaws.com` URL (for example
-   http://jv-frontend-angular-app.s3-website-us-east-1.amazonaws.com)
+   http://jv-frontend-angular-app.s3-website-us-east-2.amazonaws.com)
    
      * **[I end up blocking the public permissions to the bucket in terraform code,
      so avoiding that public access which can be verified through the bucket's
