@@ -47,7 +47,7 @@ Angular) which will be the UI core of my portfolio.
   <br></br>
 
   * On terraform I'll be using a backend state stored in an S3 bucket
-  named `Xxxx-terraform-states` where `Xxxx` relates to the project's nickname
+  named `Xxxx-tf-states` where `Xxxx` relates to the project's nickname
   or account ID, that is because S3 bucket names must be globally unique
   <br></br>
     * To be used with all the `env/*/backend.tfvars` files that I'll be using for
