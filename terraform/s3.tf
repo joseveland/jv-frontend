@@ -1,6 +1,6 @@
 # S3 bucket for hosting Angular app
 resource "aws_s3_bucket" "app_bucket" {
-  bucket = "${var.project_name}-${var.app_bucket_name}"
+  bucket = "jvelandia-${var.project_name}-${var.app_bucket_name}" # Account Nickname + Repository name + Specific name for folder storing the app == unique naming
 }
 
 # S3 bucket versioning (Optional)

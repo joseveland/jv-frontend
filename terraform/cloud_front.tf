@@ -1,6 +1,6 @@
 # CloudFront Origin Access Identity (OAI)
 resource "aws_cloudfront_origin_access_identity" "app_oai" {
-  comment = "OAI for ${var.app_bucket_name}"
+  comment = "OAI for ${aws_s3_bucket.app_bucket.id}"
 }
 
 # CloudFront Distribution
@@ -21,7 +21,7 @@ resource "aws_cloudfront_distribution" "app_distribution" {
       origin_access_identity = aws_cloudfront_origin_access_identity.app_oai.cloudfront_access_identity_path
     }
     # Unique identifier for this origin (The bucket is already unique name so just `s3-` prefix to quickly identify)
-    origin_id = "s3-${aws_s3_bucket.app_bucket.id}"
+    origin_id = "s3-origin-${aws_s3_bucket.app_bucket.id}"
   }
 
   # Default cache behavior
