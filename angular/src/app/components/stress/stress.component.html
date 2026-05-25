@@ -1,0 +1,121 @@
+<div class="stress-page">
+
+  <header class="stress-header">
+    <h1>Stress Relief</h1>
+    <p class="stress-subtitle">Choose your target state, pick a carrier, and let the backend craft a precise binaural session</p>
+  </header>
+
+  <div class="stress-body">
+
+    <!-- Band selection -->
+    <section class="config-section">
+      <h2 class="section-label">Brainwave target</h2>
+      <div class="band-grid">
+        <button
+          *ngFor="let band of bands"
+          class="band-card"
+          [class.selected]="selectedBand === band.id"
+          (click)="selectedBand = band.id"
+        >
+          <span class="band-name">{{ band.label }}</span>
+          <span class="band-hz">{{ band.hz }}</span>
+          <span class="band-goal">{{ band.goal }}</span>
+          <span class="band-desc">{{ band.description }}</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Carrier selection -->
+    <section class="config-section">
+      <h2 class="section-label">Carrier sound</h2>
+      <div class="carrier-group">
+        <button
+          *ngFor="let carrier of carriers"
+          class="carrier-btn"
+          [class.selected]="selectedCarrier === carrier.id"
+          (click)="selectedCarrier = carrier.id"
+        >{{ carrier.label }}</button>
+      </div>
+    </section>
+
+    <!-- Duration selection -->
+    <section class="config-section">
+      <h2 class="section-label">Duration</h2>
+      <div class="duration-group">
+        <button
+          *ngFor="let d of durations"
+          class="duration-btn"
+          [class.selected]="selectedDuration === d"
+          (click)="selectedDuration = d"
+        >{{ durationLabel(d) }}</button>
+      </div>
+    </section>
+
+    <!-- Action area -->
+    <div class="action-area">
+
+      <button *ngIf="state === 'idle'" class="btn-generate" (click)="generate()">
+        Generate session
+      </button>
+
+      <div *ngIf="state === 'generating'" class="generating-state">
+        <div class="spinner"></div>
+        <p class="generating-text">Generating your {{ durationLabel(selectedDuration) }} session…</p>
+      </div>
+
+      <div *ngIf="state === 'ready'" class="audio-section">
+
+        <div class="player">
+          <!-- Progress bar / seek -->
+          <div class="player-progress" (click)="seek($event)" title="Click to seek">
+            <div class="player-fill" [style.width.%]="progress * 100"></div>
+          </div>
+
+          <!-- Time display -->
+          <div class="player-time">
+            <span>{{ formatTime(currentTime) }}</span>
+            <span>{{ formatTime(duration) }}</span>
+          </div>
+
+          <!-- Controls -->
+          <div class="player-controls">
+            <button class="btn-play" (click)="togglePlay()" [attr.aria-label]="isPlaying ? 'Pause' : 'Play'">
+              <svg *ngIf="!isPlaying" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>
+              <svg *ngIf="isPlaying"  viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+            </button>
+
+            <div class="volume-control">
+              <svg viewBox="0 0 24 24" fill="currentColor" class="volume-icon">
+                <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 7.97v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
+              </svg>
+              <input
+                type="range" min="0" max="1" step="0.05"
+                [value]="volume"
+                (input)="onVolumeChange($event)"
+                class="volume-slider"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div class="audio-actions">
+          <button class="btn-generate" (click)="generate()">Regenerate</button>
+          <button class="btn-ghost" (click)="reset()">Change settings</button>
+        </div>
+
+      </div>
+
+      <div *ngIf="state === 'error'" class="error-section">
+        <p class="error-text">{{ errorMessage }}</p>
+        <button class="btn-ghost" (click)="reset()">Try again</button>
+      </div>
+
+    </div>
+
+  </div>
+
+  <footer class="project-footer">
+    <a href="/">← Jose Velandia</a>
+  </footer>
+
+</div>

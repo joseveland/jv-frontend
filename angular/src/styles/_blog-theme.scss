@@ -1,0 +1,43 @@
+// ── Shared blog layout ────────────────────────────────────────────────────────
+
+// Update href="/" to the full home URL if the blog moves to its own domain.
+.project-footer {
+  text-align: center;
+  padding: 2rem 1rem;
+  margin-top: 2rem;
+  border-top: 1px solid var(--color-border);
+
+  a {
+    color: var(--color-text-muted);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-family: var(--font-sans);
+    letter-spacing: 0.02em;
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: var(--color-text-secondary);
+    }
+  }
+}
+
+// ── Blog palette ──────────────────────────────────────────────────────────────
+
+// Override any :root variable here to give the blog its own visual identity.
+:host {
+  --color-bg:             #f4f7fb;
+  --color-surface:        #e8eef6;
+  --color-surface-alt:    #dce5f0;
+  --color-text:           #1e2d3d;
+  --color-text-secondary: #4a617a;
+  --color-text-muted:     #7a93ac;
+  --color-accent:         #2d6be4;
+  --color-accent-light:   #dde8f8;
+  --color-accent-hover:   #1f56c7;
+  --color-border:         #c5d5e8;
+  --color-shadow:         rgba(30, 60, 100, 0.08);
+  --color-on-accent:      #fff;
+  --color-code-inline-bg: #e0eaf5;
+  --color-pre-bg:         #111d2e;
+  --color-pre-text:       #e2ecf6;
+}

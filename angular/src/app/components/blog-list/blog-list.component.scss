@@ -1,4 +1,5 @@
-// src/app/components/blog-list/blog-list.component.scss
+@use 'blog-theme';
+
 .blog-list-container {
   max-width: 1200px;
   margin: 0 auto;
@@ -11,13 +12,13 @@
 
   h1 {
     font-size: 3rem;
-    color: #2c3e50;
+    color: var(--color-text);
     margin-bottom: 0.5rem;
   }
 
   .subtitle {
     font-size: 1.2rem;
-    color: #7f8c8d;
+    color: var(--color-text-secondary);
   }
 }
 
@@ -33,14 +34,17 @@
   .search-input {
     width: 100%;
     padding: 0.75rem 1rem 0.75rem 2.5rem;
-    border: 2px solid #e9ecef;
+    border: 2px solid var(--color-border);
     border-radius: 25px;
     font-size: 1rem;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-sans);
     transition: border-color 0.3s ease;
 
     &:focus {
       outline: none;
-      border-color: #3498db;
+      border-color: var(--color-accent);
     }
   }
 
@@ -49,7 +53,7 @@
     left: 1rem;
     top: 50%;
     transform: translateY(-50%);
-    color: #7f8c8d;
+    color: var(--color-text-secondary);
   }
 }
 
@@ -60,17 +64,17 @@
 }
 
 .blog-card {
-  background: white;
+  background: var(--color-bg);
   border-radius: 12px;
   padding: 1.5rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px var(--color-shadow);
   cursor: pointer;
   transition: all 0.3s ease;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--color-border);
 
   &:hover {
     transform: translateY(-4px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 8px 25px var(--color-shadow);
   }
 
   .card-header {
@@ -78,7 +82,7 @@
 
     .post-title {
       font-size: 1.4rem;
-      color: #2c3e50;
+      color: var(--color-text);
       margin-bottom: 0.5rem;
       line-height: 1.3;
     }
@@ -88,14 +92,14 @@
       justify-content: space-between;
       align-items: center;
       font-size: 0.9rem;
-      color: #7f8c8d;
+      color: var(--color-text-secondary);
 
       .date {
         font-weight: 500;
       }
 
       .read-time {
-        background: #f8f9fa;
+        background: var(--color-surface);
         padding: 0.25rem 0.5rem;
         border-radius: 12px;
       }
@@ -103,7 +107,7 @@
   }
 
   .post-excerpt {
-    color: #5a6c7d;
+    color: var(--color-text-secondary);
     line-height: 1.6;
     margin-bottom: 1.5rem;
   }
@@ -121,8 +125,8 @@
       gap: 0.5rem;
 
       .tag {
-        background: #e3f2fd;
-        color: #1976d2;
+        background: var(--color-accent-light);
+        color: var(--color-accent);
         padding: 0.25rem 0.75rem;
         border-radius: 15px;
         font-size: 0.8rem;
@@ -130,14 +134,14 @@
         transition: background-color 0.3s ease;
 
         &:hover {
-          background: #bbdefb;
+          background: var(--color-surface-alt);
         }
       }
     }
 
     .author {
       font-size: 0.9rem;
-      color: #7f8c8d;
+      color: var(--color-text-secondary);
       font-weight: 500;
     }
   }
@@ -146,14 +150,13 @@
 .no-posts {
   text-align: center;
   padding: 3rem;
-  color: #7f8c8d;
+  color: var(--color-text-secondary);
 
   p {
     font-size: 1.1rem;
   }
 }
 
-// Responsive design
 @media (max-width: 768px) {
   .blog-list-container {
     padding: 1rem;

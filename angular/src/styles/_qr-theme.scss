@@ -1,0 +1,15 @@
+// QR Reader palette — modify here to give the QR Reader its own visual identity.
+:host {
+  --color-bg:             #f2f8f6;
+  --color-surface:        #e4f0ec;
+  --color-surface-alt:    #d1e7e0;
+  --color-text:           #1a3a32;
+  --color-text-secondary: #3d6b5e;
+  --color-text-muted:     #7aab9a;
+  --color-accent:         #0f7b5e;
+  --color-accent-light:   #d4ede6;
+  --color-accent-hover:   #0a5c46;
+  --color-border:         #b2d8cc;
+  --color-shadow:         rgba(15, 123, 94, 0.08);
+  --color-on-accent:      #fff;
+}

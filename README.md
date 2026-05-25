@@ -8,6 +8,9 @@ Angular) which will be the UI core of my portfolio.
   [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
   * Via Terraform code, so I also installed (as admin in Windows)
   [that tool](https://learn.hashicorp.com/tutorials/terraform/install-cli)
+  * Angular CLI is good to have in place to run `ng` commands as they live as
+  node scripts inside `package.json`, so long story short follow the instrucctions at
+  its own [README.md](./angular/README.md) file
 <br></br>
 
 * At AWS console:

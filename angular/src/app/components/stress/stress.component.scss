@@ -1,0 +1,413 @@
+@use 'stress-theme';
+
+.stress-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg);
+}
+
+// ── Header ────────────────────────────────────────────────────────────────────
+
+.stress-header {
+  text-align: center;
+  padding: 3rem 2rem 1.5rem;
+}
+
+.stress-header h1 {
+  font-size: clamp(2rem, 5vw, 2.75rem);
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.02em;
+}
+
+.stress-subtitle {
+  color: var(--color-text-secondary);
+  font-size: 1.05rem;
+  max-width: 520px;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+
+// ── Body ──────────────────────────────────────────────────────────────────────
+
+.stress-body {
+  flex: 1;
+  width: 100%;
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 0 1.5rem 3rem;
+}
+
+// ── Config sections ───────────────────────────────────────────────────────────
+
+.config-section {
+  margin-bottom: 2rem;
+}
+
+.section-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--color-accent);
+  margin-bottom: 0.85rem;
+}
+
+// ── Band cards ────────────────────────────────────────────────────────────────
+
+.band-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.75rem;
+}
+
+.band-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 1rem 0.85rem;
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover:not(.selected) {
+    border-color: var(--color-accent);
+  }
+
+  &.selected {
+    border-color: var(--color-accent);
+    background: var(--color-accent-light);
+    box-shadow: 0 0 0 3px var(--color-shadow);
+  }
+}
+
+.band-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text);
+  font-family: var(--font-sans);
+}
+
+.band-hz {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--color-accent);
+  font-family: var(--font-sans);
+  margin-bottom: 0.35rem;
+}
+
+.band-goal {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  font-family: var(--font-sans);
+}
+
+.band-desc {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  font-family: var(--font-sans);
+  line-height: 1.4;
+}
+
+// ── Carrier pills ─────────────────────────────────────────────────────────────
+
+.carrier-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.carrier-btn {
+  padding: 0.45rem 1rem;
+  border: 1.5px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+
+  &:hover:not(.selected) {
+    border-color: var(--color-accent);
+    color: var(--color-text);
+  }
+
+  &.selected {
+    border-color: var(--color-accent);
+    background: var(--color-accent);
+    color: var(--color-on-accent);
+  }
+}
+
+// ── Duration buttons ──────────────────────────────────────────────────────────
+
+.duration-group {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.duration-btn {
+  padding: 0.5rem 1.25rem;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+
+  &:hover:not(.selected) {
+    border-color: var(--color-accent);
+    color: var(--color-text);
+  }
+
+  &.selected {
+    border-color: var(--color-accent);
+    background: var(--color-accent);
+    color: var(--color-on-accent);
+  }
+}
+
+// ── Action area ───────────────────────────────────────────────────────────────
+
+.action-area {
+  margin-top: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.btn-generate {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  border: none;
+  padding: 0.85rem 2.5rem;
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+
+  &:hover { background: var(--color-accent-hover); }
+}
+
+.btn-ghost {
+  background: none;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  padding: 0.5rem 1.25rem;
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease;
+
+  &:hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+  }
+}
+
+// ── Generating state ──────────────────────────────────────────────────────────
+
+.generating-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.generating-text {
+  color: var(--color-text-secondary);
+  font-size: 0.95rem;
+}
+
+// ── Audio player ──────────────────────────────────────────────────────────────
+
+.audio-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 500px;
+}
+
+.player {
+  width: 100%;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.player-progress {
+  width: 100%;
+  height: 6px;
+  background: var(--color-border);
+  border-radius: 999px;
+  cursor: pointer;
+  position: relative;
+
+  &:hover .player-fill {
+    filter: brightness(1.15);
+  }
+}
+
+.player-fill {
+  height: 100%;
+  background: var(--color-accent);
+  border-radius: 999px;
+  transition: width 0.25s linear;
+  pointer-events: none;
+}
+
+.player-time {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  font-family: var(--font-sans);
+}
+
+.player-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.btn-play {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.2s ease;
+
+  &:hover { background: var(--color-accent-hover); }
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.volume-control {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.volume-icon {
+  width: 18px;
+  height: 18px;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.volume-slider {
+  flex: 1;
+  accent-color: var(--color-accent);
+  cursor: pointer;
+  height: 4px;
+}
+
+.audio-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+// ── Error state ───────────────────────────────────────────────────────────────
+
+.error-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  text-align: center;
+  max-width: 480px;
+}
+
+.error-text {
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+// ── Footer ────────────────────────────────────────────────────────────────────
+
+.project-footer {
+  text-align: center;
+  padding: 2rem 1rem;
+  border-top: 1px solid var(--color-border);
+
+  a {
+    color: var(--color-text-muted);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-family: var(--font-sans);
+    letter-spacing: 0.02em;
+    transition: color 0.2s ease;
+
+    &:hover { color: var(--color-text-secondary); }
+  }
+}
+
+// ── Responsive ────────────────────────────────────────────────────────────────
+
+@media (max-width: 700px) {
+  .band-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .band-card:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .stress-header {
+    padding: 2rem 1.5rem 1rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .duration-group {
+    flex-wrap: wrap;
+  }
+}

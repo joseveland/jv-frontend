@@ -1,0 +1,16 @@
+// Home palette — modify here to give the home page its own visual identity.
+// Imported by home.component.scss and any future home/* sub-components.
+:host {
+  --color-bg:             #faf7f2;
+  --color-surface:        #f2ede4;
+  --color-surface-alt:    #ebe4d8;
+  --color-text:           #1c1917;
+  --color-text-secondary: #78716c;
+  --color-text-muted:     #a8a29e;
+  --color-accent:         #b45309;
+  --color-accent-light:   #f4e3d0;
+  --color-accent-hover:   #92400e;
+  --color-border:         #ddd5c8;
+  --color-shadow:         rgba(0, 0, 0, 0.06);
+  --color-on-accent:      #fff;
+}

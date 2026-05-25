@@ -1,0 +1,86 @@
+<div class="qr-page">
+
+  <header class="qr-header">
+    <h1>QR</h1>
+    <p class="qr-subtitle">Decode any QR code from an image or camera — or generate one from text</p>
+  </header>
+
+  <div class="qr-body">
+
+    <!-- Mode tabs -->
+    <div class="tabs">
+      <button [class.active]="mode === 'upload'" (click)="setMode('upload')">Upload Image</button>
+      <button [class.active]="mode === 'camera'" (click)="setMode('camera')">Use Camera</button>
+      <button [class.active]="mode === 'generate'" (click)="setMode('generate')">Generate</button>
+    </div>
+
+    <!-- Result and error shown at the top so they're immediately visible -->
+    <div *ngIf="result" class="result-card">
+      <p class="result-label">Decoded content</p>
+      <p class="result-value">{{ result }}</p>
+      <div class="result-actions">
+        <button class="btn-action" (click)="copy()">Copy</button>
+        <a *ngIf="isUrl" [href]="result" target="_blank" rel="noopener noreferrer" class="btn-action">Open Link</a>
+        <button class="btn-ghost" (click)="reset()">Scan Another</button>
+      </div>
+    </div>
+
+    <div *ngIf="error" class="error-card">
+      <p class="error-text">{{ error }}</p>
+      <button class="btn-ghost" (click)="reset()">Try Again</button>
+    </div>
+
+    <!-- Upload zone -->
+    <div
+      *ngIf="mode === 'upload'"
+      class="drop-zone"
+      [class.drag-over]="dragOver"
+      (dragover)="onDragOver($event)"
+      (dragleave)="onDragLeave()"
+      (drop)="onDrop($event)"
+    >
+      <p class="drop-text">
+        Drop an image here or
+        <label class="browse-label">
+          browse
+          <input type="file" accept="image/*" (change)="onFileChange($event)">
+        </label>
+      </p>
+      <p class="drop-hint">PNG, JPG, WebP — any image containing a QR code</p>
+    </div>
+
+    <!-- Camera zone: [hidden] not *ngIf — #video ViewChild must stay in DOM for async camera ops -->
+    <div [hidden]="mode !== 'camera'" class="camera-zone">
+      <video #video autoplay playsinline muted [hidden]="!cameraActive" class="camera-feed"></video>
+      <div [hidden]="cameraActive" class="camera-prompt">
+        <button class="btn-primary" (click)="startCamera()">Start Camera</button>
+        <p class="camera-hint">Scanning starts automatically — point at a QR code</p>
+      </div>
+      <button *ngIf="cameraActive" class="btn-stop" (click)="stopCamera()">Stop Camera</button>
+    </div>
+
+    <!-- Generate zone -->
+    <div *ngIf="mode === 'generate'" class="generate-zone">
+      <textarea
+        class="generate-input"
+        [(ngModel)]="generateText"
+        placeholder="Enter text or URL to encode as a QR code"
+        rows="4"
+      ></textarea>
+      <button class="btn-primary" (click)="generateQr()" [disabled]="!generateText.trim()">Generate QR</button>
+      <div *ngIf="generatedQr" class="qr-output">
+        <img [src]="generatedQr" alt="Generated QR code" class="qr-image" />
+        <button class="btn-action" (click)="downloadQr()">Download PNG</button>
+      </div>
+    </div>
+
+    <!-- Processing canvas — never visible, always in DOM -->
+    <canvas #canvas class="processing-canvas"></canvas>
+
+  </div>
+
+  <footer class="project-footer">
+    <a href="/">← Jose Velandia</a>
+  </footer>
+
+</div>

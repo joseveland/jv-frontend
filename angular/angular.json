@@ -40,7 +40,11 @@
             "styles": [
               "src/styles.scss"
             ],
-            "scripts": []
+            "scripts": [],
+            "stylePreprocessorOptions": {
+              "includePaths": ["src/styles"]
+            },
+            "allowedCommonJsDependencies": ["jsqr", "qrcode"]
           },
           "configurations": {
             "production": {
@@ -105,10 +109,16 @@
             "styles": [
               "src/styles.scss"
             ],
-            "scripts": []
+            "scripts": [],
+            "stylePreprocessorOptions": {
+              "includePaths": ["src/styles"]
+            }
           }
         }
       }
     }
+  },
+  "cli": {
+    "analytics": "52bc24bc-3c5a-4731-8be3-e56ab0fadff9"
   }
 }
