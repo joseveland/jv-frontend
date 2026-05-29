@@ -2,54 +2,46 @@
 
   <header class="stress-header">
     <h1>Stress Relief</h1>
-    <p class="stress-subtitle">Choose your target state, pick a carrier, and let the backend craft a precise binaural session</p>
+    <p class="stress-subtitle">Choose your target brainwave state and let the backend generate a precise binaural session</p>
   </header>
 
   <div class="stress-body">
 
-    <!-- Band selection -->
-    <section class="config-section">
-      <h2 class="section-label">Brainwave target</h2>
-      <div class="band-grid">
-        <button
-          *ngFor="let band of bands"
-          class="band-card"
-          [class.selected]="selectedBand === band.id"
-          (click)="selectedBand = band.id"
-        >
-          <span class="band-name">{{ band.label }}</span>
-          <span class="band-hz">{{ band.hz }}</span>
-          <span class="band-goal">{{ band.goal }}</span>
-          <span class="band-desc">{{ band.description }}</span>
-        </button>
-      </div>
-    </section>
+    <!-- Selection area -->
+    <div *ngIf="state !== 'playing'" class="selection-area">
 
-    <!-- Carrier selection -->
-    <section class="config-section">
-      <h2 class="section-label">Carrier sound</h2>
-      <div class="carrier-group">
-        <button
-          *ngFor="let carrier of carriers"
-          class="carrier-btn"
-          [class.selected]="selectedCarrier === carrier.id"
-          (click)="selectedCarrier = carrier.id"
-        >{{ carrier.label }}</button>
-      </div>
-    </section>
+      <!-- Band selection -->
+      <section class="config-section">
+        <h2 class="section-label">Brainwave target</h2>
+        <div class="band-grid">
+          <button
+            *ngFor="let band of bands"
+            class="band-card"
+            [class.selected]="selectedBand === band.id"
+            (click)="selectedBand = band.id"
+          >
+            <span class="band-name">{{ band.label }}</span>
+            <span class="band-hz">{{ band.hz }}</span>
+            <span class="band-goal">{{ band.goal }}</span>
+            <span class="band-desc">{{ band.description }}</span>
+          </button>
+        </div>
+      </section>
 
-    <!-- Duration selection -->
-    <section class="config-section">
-      <h2 class="section-label">Duration</h2>
-      <div class="duration-group">
-        <button
-          *ngFor="let d of durations"
-          class="duration-btn"
-          [class.selected]="selectedDuration === d"
-          (click)="selectedDuration = d"
-        >{{ durationLabel(d) }}</button>
-      </div>
-    </section>
+      <!-- Duration selection -->
+      <section class="config-section">
+        <h2 class="section-label">Duration</h2>
+        <div class="duration-group">
+          <button
+            *ngFor="let d of durations"
+            class="duration-btn"
+            [class.selected]="selectedDuration === d"
+            (click)="selectedDuration = d"
+          >{{ durationLabel(d) }}</button>
+        </div>
+      </section>
+    
+    </div>
 
     <!-- Action area -->
     <div class="action-area">
@@ -58,26 +50,28 @@
         Generate session
       </button>
 
-      <div *ngIf="state === 'generating'" class="generating-state">
+      <div *ngIf="state === 'loading'" class="generating-state">
         <div class="spinner"></div>
-        <p class="generating-text">Generating your {{ durationLabel(selectedDuration) }} session…</p>
+        <p class="generating-text">Preparing your {{ durationLabel(selectedDuration) }} session…</p>
       </div>
 
-      <div *ngIf="state === 'ready'" class="audio-section">
+      <div *ngIf="state === 'playing'" class="audio-section">
+
+        <div *ngIf="activeBand" class="now-playing">
+          <span class="now-playing-label">Now playing</span>
+          <div class="now-playing-band">
+            <span class="now-playing-name">{{ activeBand.label }}</span>
+            <span class="now-playing-hz">{{ activeBand.hz }}</span>
+          </div>
+          <div class="now-playing-meta">
+            <span class="now-playing-goal">{{ activeBand.goal }}</span>
+            <span class="now-playing-sep">·</span>
+            <span class="now-playing-duration">{{ durationLabel(activeDuration) }}</span>
+          </div>
+          <p class="now-playing-desc">{{ activeBand.description }}</p>
+        </div>
 
         <div class="player">
-          <!-- Progress bar / seek -->
-          <div class="player-progress" (click)="seek($event)" title="Click to seek">
-            <div class="player-fill" [style.width.%]="progress * 100"></div>
-          </div>
-
-          <!-- Time display -->
-          <div class="player-time">
-            <span>{{ formatTime(currentTime) }}</span>
-            <span>{{ formatTime(duration) }}</span>
-          </div>
-
-          <!-- Controls -->
           <div class="player-controls">
             <button class="btn-play" (click)="togglePlay()" [attr.aria-label]="isPlaying ? 'Pause' : 'Play'">
               <svg *ngIf="!isPlaying" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>
@@ -99,8 +93,7 @@
         </div>
 
         <div class="audio-actions">
-          <button class="btn-generate" (click)="generate()">Regenerate</button>
-          <button class="btn-ghost" (click)="reset()">Change settings</button>
+          <button class="btn-generate" (click)="reset()">Change settings</button>
         </div>
 
       </div>

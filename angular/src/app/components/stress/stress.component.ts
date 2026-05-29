@@ -1,6 +1,7 @@
 import { Component, OnDestroy } from '@angular/core';
 import { NgFor, NgIf } from '@angular/common';
-import { StressService } from '../../services/stress.service';
+import { Subscription } from 'rxjs';
+import { StressService, StreamMeta } from '../../services/stress.service';
 
 interface Band {
   id: string;
@@ -8,14 +9,15 @@ interface Band {
   hz: string;
   goal: string;
   description: string;
+  centerHz: number;  // waypoint sent to backend
 }
 
-interface Carrier {
-  id: string;
-  label: string;
-}
+type SessionState = 'idle' | 'loading' | 'playing' | 'error';
 
-type SessionState = 'idle' | 'generating' | 'ready' | 'error';
+// Chunks accumulated before creating one AudioBufferSourceNode
+// which means fewer active nodes in the audio graph, less scheduler pressure.
+// 100 chunks × 4096 frames / 44100 Hz ≈ 9.3 s per node.
+const SCHED_BATCH_CHUNKS = 100;
 
 @Component({
   selector: 'app-stress',
@@ -32,6 +34,7 @@ export class StressComponent implements OnDestroy {
       hz: '0.5 – 4 Hz',
       goal: 'Deep sleep',
       description: 'The slowest brainwaves. Promotes deep, restorative sleep and cellular repair.',
+      centerHz: 2,
     },
     {
       id: 'theta',
@@ -39,6 +42,7 @@ export class StressComponent implements OnDestroy {
       hz: '4 – 8 Hz',
       goal: 'Meditation',
       description: 'Linked to REM sleep, deep meditation, and moments of creative insight.',
+      centerHz: 6,
     },
     {
       id: 'alpha',
@@ -46,6 +50,7 @@ export class StressComponent implements OnDestroy {
       hz: '8 – 14 Hz',
       goal: 'Relaxed focus',
       description: 'Calm alertness. Ideal for unwinding, light meditation, and stress reduction.',
+      centerHz: 10,
     },
     {
       id: 'beta',
@@ -53,6 +58,7 @@ export class StressComponent implements OnDestroy {
       hz: '14 – 30 Hz',
       goal: 'Concentration',
       description: 'Active, engaged thinking. Supports focus, problem-solving, and sustained attention.',
+      centerHz: 20,
     },
     {
       id: 'gamma',
@@ -60,188 +66,176 @@ export class StressComponent implements OnDestroy {
       hz: '30 – 100 Hz',
       goal: 'Peak cognition',
       description: 'High-frequency bursts associated with peak mental performance and sensory binding.',
+      centerHz: 40,
     },
-  ];
-
-  readonly carriers: Carrier[] = [
-    { id: 'none',        label: 'Pure tone'   },
-    { id: 'white-noise', label: 'White noise' },
-    { id: 'pink-noise',  label: 'Pink noise'  },
-    { id: 'brown-noise', label: 'Brown noise' },
-    { id: 'rain',        label: 'Rain'        },
-    { id: 'ocean',       label: 'Ocean'       },
-    { id: 'forest',      label: 'Forest'      },
   ];
 
   readonly durations = [5, 15, 30, 60];
 
   selectedBand     = 'alpha';
-  selectedCarrier  = 'pink-noise';
   selectedDuration = 15;
 
   state: SessionState = 'idle';
   errorMessage = '';
+  isPlaying    = false;
+  volume       = 0.8;
 
-  // ── Web Audio API player state ─────────────────────────────────────────────
+  activeBand:     Band | null = null;
+  activeDuration: number      = 0;
 
-  isPlaying   = false;
-  progress    = 0;       // 0 – 1
-  currentTime = 0;       // seconds
-  duration    = 0;       // seconds
-  volume      = 0.8;
-
-  private audioCtx:    AudioContext | null          = null;
-  private gainNode:    GainNode | null              = null;
-  private audioBuffer: AudioBuffer | null           = null;
-  private sourceNode:  AudioBufferSourceNode | null = null;
-  private startedAt   = 0;   // audioCtx.currentTime when last play() was called
-  private pausedAt    = 0;   // buffer offset at last pause
-  private ticker:     ReturnType<typeof setInterval> | null = null;
+  private audioCtx:       AudioContext | null          = null;
+  private gainNode:       GainNode | null              = null;
+  private scheduledUntil  = 0;
+  private lastNode:       AudioBufferSourceNode | null = null;
+  private streamSub:      Subscription | null          = null;
+  private streamMeta:     StreamMeta | null            = null;
+  private schedBatch:     Float32Array[]               = [];
 
   constructor(private stressService: StressService) {}
 
   // ── Session generation ────────────────────────────────────────────────────
 
   generate(): void {
-    // AudioContext must be created inside a user-gesture handler
-    if (!this.audioCtx) {
-      this.audioCtx  = new AudioContext();
-      this.gainNode  = this.audioCtx.createGain();
-      this.gainNode.gain.value = this.volume;
-      this.gainNode.connect(this.audioCtx.destination);
+    this.streamSub?.unsubscribe();
+    this.streamSub = null;
+    if (this.audioCtx) {
+      this.audioCtx.close();
+      this.audioCtx   = null;
+      this.gainNode   = null;
     }
+    this.isPlaying      = false;
+    this.scheduledUntil = 0;
+    this.lastNode       = null;
+    this.streamMeta     = null;
+    this.schedBatch     = [];
 
-    this.stopPlayback();
-    this.audioBuffer = null;
-    this.progress    = 0;
-    this.currentTime = 0;
-    this.pausedAt    = 0;
-    this.state       = 'generating';
+    this.state        = 'loading';
     this.errorMessage = '';
 
-    this.stressService.generate({
-      band: this.selectedBand,
-      carrier: this.selectedCarrier,
-      duration_minutes: this.selectedDuration,
+    const band = this.bands.find(b => b.id === this.selectedBand)!;
+    this.activeBand     = band;
+    this.activeDuration = this.selectedDuration;
+
+    this.streamSub = this.stressService.stream({
+      // carrier_hz, segments_pct, movements, factors, volume, fade, sample_rate, bit_depth
+      waypoints: [band.centerHz],
+      duration: this.selectedDuration * 60,
     }).subscribe({
-      next: async (buffer: ArrayBuffer) => {
-        try {
-          this.audioBuffer = await this.audioCtx!.decodeAudioData(buffer);
-          this.duration    = this.audioBuffer.duration;
-          this.state       = 'ready';
-          this.play();
-        } catch {
-          this.errorMessage = 'Failed to decode the audio data.';
-          this.state = 'error';
+      next: (event) => {
+        if (event.type === 'meta') {
+          this.streamMeta = event.meta;
+          // AudioContext created here so sampleRate comes from the server,
+          // avoiding per-chunk resampling at chunk boundaries.
+          this.audioCtx = new AudioContext({ sampleRate: event.meta.sample_rate });
+          this.gainNode = this.audioCtx.createGain();
+          this.gainNode.gain.value = this.volume;
+          this.gainNode.connect(this.audioCtx.destination);
+          // Chrome/Edge suspend AudioContext on focus loss or tab hide.
+          // Auto-resume keeps audio playing when the user moves to another window.
+          this.audioCtx.addEventListener('statechange', () => {
+            if (this.audioCtx?.state === 'suspended' && this.isPlaying) {
+              this.audioCtx.resume();
+            }
+          });
+
+        } else if (event.type === 'chunk' && this.audioCtx && this.gainNode) {
+          this.schedBatch.push(event.data);
+          if (this.schedBatch.length >= SCHED_BATCH_CHUNKS) {
+            this.flushScheduleBatch();
+          }
+
+        } else if (event.type === 'end') {
+          if (this.schedBatch.length > 0) this.flushScheduleBatch();
+          if (this.lastNode) {
+            const last = this.lastNode;
+            last.onended = () => {
+              if (this.state === 'playing') {
+                this.state    = 'idle';
+                this.isPlaying = false;
+              }
+            };
+          }
         }
       },
       error: () => {
-        this.errorMessage = 'Could not reach the audio backend. Set the API URL in StressService when the backend is ready.';
+        this.errorMessage = 'Could not reach the audio backend. Make sure the backend is running on localhost:8000.';
         this.state = 'error';
       },
     });
   }
 
+  // Merges all buffered chunks into one AudioBuffer and schedules it.
+  // Batching reduces active AudioBufferSourceNode count from ~64 to ~7
+  // for a 6-second pull buffer, cutting audio-graph scheduler pressure.
+  private flushScheduleBatch(): void {
+    const meta   = this.streamMeta!;
+    const chunks = this.schedBatch.splice(0);
+
+    const totalFrames = chunks.reduce((sum, c) => sum + c.length, 0) / meta.channels;
+    const buf = this.audioCtx!.createBuffer(meta.channels, totalFrames, meta.sample_rate);
+
+    let frameOffset = 0;
+    for (const chunk of chunks) {
+      const framesInChunk = chunk.length / meta.channels;
+      for (let c = 0; c < meta.channels; c++) {
+        const ch = buf.getChannelData(c);
+        for (let i = 0; i < framesInChunk; i++) {
+          ch[frameOffset + i] = chunk[i * meta.channels + c];
+        }
+      }
+      frameOffset += framesInChunk;
+    }
+
+    const node = this.audioCtx!.createBufferSource();
+    node.buffer = buf;
+    node.connect(this.gainNode!);
+
+    const now = this.audioCtx!.currentTime;
+    if (this.scheduledUntil < now) this.scheduledUntil = now;
+    node.start(this.scheduledUntil);
+    this.scheduledUntil += buf.duration;
+    this.lastNode = node;
+
+    if (this.state === 'loading') {
+      this.state    = 'playing';
+      this.isPlaying = true;
+    }
+  }
+
   reset(): void {
-    this.stopPlayback();
-    this.audioBuffer  = null;
-    this.progress     = 0;
-    this.currentTime  = 0;
-    this.pausedAt     = 0;
-    this.state        = 'idle';
-    this.errorMessage = '';
+    this.streamSub?.unsubscribe();
+    this.streamSub = null;
+    if (this.audioCtx) {
+      this.audioCtx.close();
+      this.audioCtx = null;
+      this.gainNode = null;
+    }
+    this.isPlaying      = false;
+    this.scheduledUntil = 0;
+    this.lastNode       = null;
+    this.schedBatch     = [];   // Just holds the chunks until certain ammount arrived so `flushScheduleBatch` can be executed leading better audio response (Less pressure)
+    this.streamMeta     = null; // Used to track metadata within this component, and that way `flushScheduleBatch` is able to obtain that initially received metadata from the backend
+
+    this.state          = 'idle';
+    this.errorMessage   = '';
   }
 
   // ── Playback controls ─────────────────────────────────────────────────────
 
   togglePlay(): void {
-    this.isPlaying ? this.pause() : this.play();
-  }
-
-  play(): void {
-    if (!this.audioCtx || !this.audioBuffer || !this.gainNode) return;
-    this.audioCtx.resume();
-
-    this.sourceNode = this.audioCtx.createBufferSource();
-    this.sourceNode.buffer = this.audioBuffer;
-    this.sourceNode.connect(this.gainNode);
-
-    this.startedAt = this.audioCtx.currentTime;
-    this.sourceNode.start(0, this.pausedAt);
-    this.isPlaying = true;
-
-    this.sourceNode.onended = () => {
-      // Only treat as natural end if we're still in playing state
-      if (this.isPlaying) {
-        this.isPlaying   = false;
-        this.pausedAt    = 0;
-        this.progress    = 0;
-        this.currentTime = 0;
-        this.stopTicker();
-      }
-    };
-
-    this.startTicker();
-  }
-
-  pause(): void {
-    if (!this.sourceNode || !this.audioCtx) return;
-    this.pausedAt += this.audioCtx.currentTime - this.startedAt;
-    this.sourceNode.onended = null;
-    this.sourceNode.stop();
-    this.sourceNode = null;
-    this.isPlaying  = false;
-    this.stopTicker();
-  }
-
-  seek(event: MouseEvent): void {
-    if (!this.audioBuffer) return;
-    const bar   = event.currentTarget as HTMLElement;
-    const ratio = Math.max(0, Math.min(1, (event.clientX - bar.getBoundingClientRect().left) / bar.offsetWidth));
-    const target = ratio * this.duration;
-
-    const wasPlaying = this.isPlaying;
-    if (wasPlaying) this.pause();
-
-    this.pausedAt    = target;
-    this.progress    = ratio;
-    this.currentTime = target;
-
-    if (wasPlaying) this.play();
+    if (!this.audioCtx) return;
+    if (this.isPlaying) {
+      this.audioCtx.suspend();
+      this.isPlaying = false;
+    } else {
+      this.audioCtx.resume();
+      this.isPlaying = true;
+    }
   }
 
   onVolumeChange(event: Event): void {
     this.volume = +(event.target as HTMLInputElement).value;
     if (this.gainNode) this.gainNode.gain.value = this.volume;
-  }
-
-  // ── Progress ticker ───────────────────────────────────────────────────────
-
-  private startTicker(): void {
-    this.stopTicker();
-    this.ticker = setInterval(() => {
-      if (!this.audioCtx || !this.isPlaying) return;
-      const elapsed = Math.min(
-        this.audioCtx.currentTime - this.startedAt + this.pausedAt,
-        this.duration,
-      );
-      this.currentTime = elapsed;
-      this.progress    = this.duration > 0 ? elapsed / this.duration : 0;
-    }, 250);
-  }
-
-  private stopTicker(): void {
-    if (this.ticker) { clearInterval(this.ticker); this.ticker = null; }
-  }
-
-  private stopPlayback(): void {
-    this.stopTicker();
-    if (this.sourceNode) {
-      this.sourceNode.onended = null;
-      try { this.sourceNode.stop(); } catch { /* already stopped */ }
-      this.sourceNode = null;
-    }
-    this.isPlaying = false;
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────
@@ -250,14 +244,8 @@ export class StressComponent implements OnDestroy {
     return d === 60 ? '1 hour' : `${d} min`;
   }
 
-  formatTime(seconds: number): string {
-    const m = Math.floor(seconds / 60);
-    const s = Math.floor(seconds % 60);
-    return `${m}:${s.toString().padStart(2, '0')}`;
-  }
-
   ngOnDestroy(): void {
-    this.stopPlayback();
+    this.streamSub?.unsubscribe();
     this.audioCtx?.close();
   }
 }
